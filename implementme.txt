@@ -1,0 +1,11 @@
+coppersmith
+councilroom
+courtyard
+cutpurse - attack
+baron
+cellar
+chancellor
+explorer
+feast
+workshop
+ironworks
