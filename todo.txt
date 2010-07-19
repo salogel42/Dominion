@@ -1,5 +1,8 @@
 Things left to do:
 
+make trash a real trash pile (i.e. make it so you can see the last thing trashed, 
+	maybe some indicator of how many things trashed?)
+
 --make sure number of players entered is between 2 and 4 (maybe more later), reprompt if not
 
 -at game end, play again/start game with new players?

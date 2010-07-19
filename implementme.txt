@@ -1,21 +1,4 @@
-Implemented:
-5 Bazaar – +1 Card, +2 Actions, +1 .
-2 Chapel – Trash up to 4 cards from your hand.
-4 Conspirator – +2 . If you played 3 or more Actions this turn (counting this): +1 Card, +1 Action.
-5 Festival – +2 Actions, +1 Buy, +2 .
-3 Great Hall – +1 Card. +1 Action. 1 .
-6 Harem – 2 , 2 .
-5 Laboratory – +2 Cards, +1 Action.
-5 Market – +1 Card, +1 Action, +1 Buy, +1
-2 Moat – +2 Cards. Reaction: When another player plays an Attack card, you may reveal this from your hand. If you do, you are unaffected by that attack.
-3 Shanty Town – +2 Actions. Reveal your hand. If you have no actions cards in hand, +2 Cards.
-4 Smithy – +3 Cards.
-3 Village – +1 Card. +2 Actions.
-5 Witch – +2 Cards. Each other player gains a Curse card.
-3 Woodcutter – +1 Buy, +2 .
-
 Should be fairly easy:
-4 Moneylender – Trash a Copper card from your hand. If you do, +3 .
 5 Council Room – +4 Cards, +1 Buy. Each other player draws a card.
 5 Tribute – The player to your left reveals and then discards the top 2 cards of his deck. For each different named card revealed, if it an... Action card, +2 Actions, Treasure card, +2 , Victory Card, +2 Cards.
 4 Sea Hag – Each other player discards the top card of his deck, then gains a Curse card, putting it on top of his deck.
@@ -66,6 +49,7 @@ duration:
 4 Caravan – +1 Card, +1 Action. At the start of your next turn, +1 Card.
 2 Lighthouse – + 1 Action. Now and at the start of your next turn: +1 . While this is in play, when another player plays an Attack card, it doesn’t affect you.
 5 Tactician – Discard your hand. If you discarded any cards this way, then at the start of your next turn, +5 Cards, +1 Buy, and +1 Action.
+5 Wharf – Now and at the start of your next turn: +2 Cards, +1 Buy.
 
 need "look at"/"reveal"/"set aside" pane
 4 Spy – +1 Card, +1 Action. Each player (including you) reveals the top card of his deck and either discards it or puts it back, your choice.
@@ -97,6 +81,7 @@ Promo:
 5 Stash – 2 , When you shuffle, you may put this anywhere in your deck.
 
 Alchemy:
+4 Potion
 3 Alchemist – +2 Cards, +1 Action. When you discard this from play, you may put this on top of your deck if you have a Potion in play.
 2 Apothecary – +1 Card, +1 Action. Reveal the top 4 cards of your deck. Put the revealed Coppers and Potions into your hand. Put the other cards back on top of your deck in any order.
 5 Apprentice – +1 Action. Trash a card from your hand. +1 Card per it costs. +2 Cards if it has Potion in its cost.
@@ -109,4 +94,21 @@ Alchemy:
 Transmute – Trash a card from your hand. If it is a… Action card, gain a Duchy. Treasure card, gain a Transmute. Victory card, gain a Gold.
 3 University – +2 Actions. You may gain an Action card costing up to 5 .
 Vineyard – Worth 1 for every 3 Action cards in your deck (rounded down).
-5 Wharf – Now and at the start of your next turn: +2 Cards, +1 Buy.
+
+
+Already Implemented:
+5 Bazaar – +1 Card, +2 Actions, +1 .
+2 Chapel – Trash up to 4 cards from your hand.
+4 Conspirator – +2 . If you played 3 or more Actions this turn (counting this): +1 Card, +1 Action.
+5 Festival – +2 Actions, +1 Buy, +2 .
+3 Great Hall – +1 Card. +1 Action. 1 .
+6 Harem – 2 , 2 .
+5 Laboratory – +2 Cards, +1 Action.
+5 Market – +1 Card, +1 Action, +1 Buy, +1
+2 Moat – +2 Cards. Reaction: When another player plays an Attack card, you may reveal this from your hand. If you do, you are unaffected by that attack.
+3 Shanty Town – +2 Actions. Reveal your hand. If you have no actions cards in hand, +2 Cards.
+4 Smithy – +3 Cards.
+3 Village – +1 Card. +2 Actions.
+5 Witch – +2 Cards. Each other player gains a Curse card.
+3 Woodcutter – +1 Buy, +2 .
+4 Moneylender – Trash a Copper card from your hand. If you do, +3 .

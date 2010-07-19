@@ -1,10 +1,10 @@
 package dominion.card;
 
-import dominion.OooyGUI;
+import dominion.DominionGUI;
 
 
 public interface DecisionCard extends ActionCard {
 
-	public void createAndSendDecisionObject(OooyGUI gui);
-	public void carryOutDecision(OooyGUI gui, int playerNum, Decision decision);
+	public void createAndSendDecisionObject(DominionGUI gui);
+	public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision);
 }

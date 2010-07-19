@@ -2,7 +2,7 @@ package dominion.card;
 
 import java.io.Serializable;
 
-import dominion.OooyGUI;
+import dominion.DominionGUI;
 import dominion.ServerTurn;
 import dominion.Turn;
 import dominion.card.Decision.CardListDecision;
@@ -12,11 +12,11 @@ public interface Card extends Serializable, Comparable<Card> {
 	public static final VictoryCard[] victoryCards = {new Estate(), new Duchy(), new Province()};
 	public static final Card curse = new Curse();
 	public static final Card[] baseRandomizerDeck = {
-		new Chapel(), new Moat(), 
-		new Village(), new Woodcutter(), 
-		new Smithy(),
+		//new Chapel(), new Moat(), 
+		//new Village(), new Woodcutter(), 
+		new Moneylender(), new Smithy(),
 		new Festival(), new Laboratory(), new Market(),
-		new Witch()
+//		new Witch()
 	};
 	public static final Card[] intrigueRandomizerDeck = {
 		new GreatHall(), new ShantyTown(), new Conspirator(), new Harem()
@@ -101,7 +101,7 @@ public interface Card extends Serializable, Comparable<Card> {
 				turn.requestDecision(this);
 		}
 		@Override
-		public void createAndSendDecisionObject(OooyGUI gui) {
+		public void createAndSendDecisionObject(DominionGUI gui) {
 			//sets the GUI in motion
 			gui.setupCardSelection(4, false);
 		}
@@ -113,7 +113,7 @@ public interface Card extends Serializable, Comparable<Card> {
 			turn.doneProcessing();
 		}
 		@Override
-		public void carryOutDecision(OooyGUI gui, int playerNum, Decision decision) {
+		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision) {
 			gui.trashCardSelection(playerNum, (CardListDecision)decision);
 		}
 	}	
@@ -149,6 +149,22 @@ public interface Card extends Serializable, Comparable<Card> {
 	}
 
 	//fours
+	public class Moneylender extends DefaultCard implements ActionCard {
+		private static final long serialVersionUID = 1L;
+		@Override public int getCost() { return 4; }
+
+		@Override
+		public void playCard(Turn turn) {
+			//TODO maybe each card should be a singleton with a getInstance() method?
+			//TODO should you be allowed to play Moneylender if no copper in hand?
+			//		I think it should be ok from card text, do rules check
+			if(turn.containsCard(Card.treasureCards[0])) {
+				turn.trashCard(Card.treasureCards[0]);
+				turn.addBuyingPower(3);
+			}
+		}
+	}
+	
 	public class Smithy extends DefaultCard implements ActionCard {
 		private static final long serialVersionUID = 1L;
 		@Override public int getCost() { return 4; }

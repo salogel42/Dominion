@@ -10,9 +10,9 @@ import dominion.RemoteMessage.Action;
 import dominion.card.ActionCard;
 import dominion.card.Card;
 import dominion.card.ComplexDecisionCard;
-import dominion.card.TreasureCard;
 import dominion.card.Decision.CardListDecision;
 import dominion.card.Decision.GainDecision;
+import dominion.card.TreasureCard;
 
 public class ServerTurn extends Turn {
 	private PlayerInfo player;
@@ -122,8 +122,7 @@ public class ServerTurn extends Turn {
 				return; //TODO send "bad decision" message
 			}
 		for(Card c : cld.list) {
-			inHand.remove(c);
-			player.trashCard(c);
+			this.trashCard(c);
 		}
 		//TODO problem!!! May or may not have already computed buying power
 		System.out.println("Got through trashing");
@@ -175,13 +174,6 @@ public class ServerTurn extends Turn {
 		continueTurn();
 	}
 	
-	@Override public boolean actionsInHand() {
-		for(Card card : inHand) {
-			if(card instanceof ActionCard)
-				return true;
-		}
-		return false;
-	}
 
 	@Override
 	public void revealHand() {
@@ -194,6 +186,13 @@ public class ServerTurn extends Turn {
 			player.sendGain(Card.curse);
 		}
 		
+	}
+
+	//Note: caller must verify presence of card
+	@Override
+	public void trashCard(Card c) {
+		inHand.remove(c);
+		player.trashCard(c);
 	}
 
 }

@@ -6,6 +6,13 @@ import dominion.card.Card;
 
 public class ClientTurn extends Turn {
 
+	private final DominionGUI gui;
+	private final int playerNum;
+	
+	public ClientTurn(DominionGUI gui, int playerNum) {
+		this.gui = gui;
+		this.playerNum = playerNum;
+	}
 	@Override
 	public void drawCards(int cards) { 
 		//Do nothing, server handles this
@@ -15,13 +22,6 @@ public class ClientTurn extends Turn {
 	public void revealHand() {	
 		//Again, do nothing, server handles this
 	}
-
-	@Override
-	public boolean actionsInHand() { 
-		//obviously wrong but doesn't matter for client side
-		//TODO may need this to be right for some?  not currently
-		return true;
-	} 
 	
 	@Override
 	public void playCard(Card c) {
@@ -29,4 +29,11 @@ public class ClientTurn extends Turn {
 		//Server should've already checked, but could've been an issue sending
 		this.playHelper((ActionCard) c);
 	}
+
+	@Override
+	public void trashCard(Card c) {
+		//The GUI removes from inHand on your behalf, and does the display stuff
+		gui.trashCard(playerNum, c);		
+	}
+
 }

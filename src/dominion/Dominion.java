@@ -48,7 +48,7 @@ import dominion.card.Decision.GainDecision;
 import dominion.card.Decision.StackDecision;
 
 @SuppressWarnings("serial")
-public class Dominion extends JFrame implements StreamListener, ActionListener, OooyGUI {
+public class Dominion extends JFrame implements StreamListener, ActionListener, DominionGUI {
 	static final int DEFAULT_PORT = 39587;
 	static final String HOME_PORT = "127.0.0.1";
 	
@@ -398,7 +398,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 	/* local player behaviors */
 
 	private void endTurn(int player) {
-		playerModels[player].turn = new ClientTurn();
+		playerModels[player].turn = new ClientTurn(this, player);
 		if(player == localPlayer) {
 			handPane.removeAll();
 		}
@@ -415,7 +415,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 	}
 
 	
-	static public class PlayerModel {
+	public class PlayerModel {
 		final int playerNumber;
 		Pos p;
 		ClientTurn turn;
@@ -425,9 +425,17 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		
 		public PlayerModel(int playerNumber) {
 			this.playerNumber = playerNumber;
-			turn = new ClientTurn();
+			turn = new ClientTurn(Dominion.this, playerNumber);
 		}
 		//TODO how is ClientTurn going to be able to trash cards?
+	}
+
+	@Override
+	public void trashCard(int playerNum, Card c) {
+		int i = playerModels[playerNum].turn.inHand.indexOf(c);
+		handPane.remove(i);
+		playerModels[playerNum].turn.inHand.remove(i);
+		
 	}
 
 	@Override
@@ -435,9 +443,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		for(Card c : cld.list) {
 			System.out.println("Player " + playerNum + " trashed " + c);
 			if(playerNum == localPlayer) {
-				int i = playerModels[playerNum].turn.inHand.indexOf(c);
-				handPane.remove(i);
-				playerModels[playerNum].turn.inHand.remove(i);
+				trashCard(localPlayer, c);
 			}
 			//TODO: add to trash
 		}
@@ -809,4 +815,5 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 			System.out.println("Missing a case:" + m.action + "!");
 		}
 	}
+
 }
