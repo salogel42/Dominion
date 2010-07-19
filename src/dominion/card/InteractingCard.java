@@ -1,7 +1,8 @@
 package dominion.card;
 
-import dominion.Turn;
+import dominion.ServerTurn;
 
 public interface InteractingCard extends ActionCard {
-	public void reactToCard(Turn turn);
+	//This is called by all of the OTHER players when someone plays the card
+	public void reactToCard(ServerTurn turn);
 }

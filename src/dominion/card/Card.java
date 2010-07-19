@@ -12,11 +12,11 @@ public interface Card extends Serializable, Comparable<Card> {
 	public static final VictoryCard[] victoryCards = {new Estate(), new Duchy(), new Province()};
 	public static final Card curse = new Curse();
 	public static final Card[] baseRandomizerDeck = {
-		//new Chapel(), new Moat(), 
-		//new Village(), new Woodcutter(), 
+		new Chapel(), new Moat(), 
+		new Village(), new Woodcutter(), 
 		new Moneylender(), new Smithy(),
-		new Festival(), new Laboratory(), new Market(),
-//		new Witch()
+		new CouncilRoom(), new Festival(), new Laboratory(), new Market(),
+		new Witch()
 	};
 	public static final Card[] intrigueRandomizerDeck = {
 		new GreatHall(), new ShantyTown(), new Conspirator(), new Harem()
@@ -176,6 +176,20 @@ public interface Card extends Serializable, Comparable<Card> {
 	}
 
 	//fives
+	public class CouncilRoom extends DefaultCard implements InteractingCard {
+		private static final long serialVersionUID = 1L;
+		@Override public int getCost() { return 5; }
+		@Override
+		public void playCard(Turn turn) {
+			turn.drawCards(4);
+			turn.addBuys(1);
+		}
+		@Override
+		public void reactToCard(ServerTurn turn) {
+			turn.drawCards(1);
+		}
+		
+	}
 	public class Festival extends DefaultCard implements ActionCard {
 		private static final long serialVersionUID = 1L;
 		@Override public int getCost() { return 5; }
@@ -216,10 +230,8 @@ public interface Card extends Serializable, Comparable<Card> {
 		private static final long serialVersionUID = 1L;
 
 		@Override
-		public void reactToCard(Turn turn) {
-			if(turn instanceof ServerTurn) {
-				((ServerTurn)turn).gainCurse();
-			} //do nothing if it's on client side
+		public void reactToCard(ServerTurn turn) {
+			turn.gainCurse();
 		}
 
 		@Override public void playCard(Turn turn) { turn.drawCards(2); }
