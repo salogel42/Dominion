@@ -12,14 +12,14 @@ public interface Card extends Serializable, Comparable<Card> {
 	public static final VictoryCard[] victoryCards = {new Estate(), new Duchy(), new Province()};
 	public static final Card curse = new Curse();
 	public static final Card[] baseRandomizerDeck = {
-		new Chapel(), //new Moat(), 
-		new Village(), //new Woodcutter(), 
+		new Chapel(), new Moat(), 
+		new Village(), new Woodcutter(), 
 		new Smithy(),
 		new Festival(), new Laboratory(), new Market(),
-		//new Witch()
+		new Witch()
 	};
 	public static final Card[] intrigueRandomizerDeck = {
-		new GreatHall(), new ShantyTown(), new Conspirator()//, new Harem()
+		new GreatHall(), new ShantyTown(), new Conspirator(), new Harem()
 	};
 	public static final Card[] seasideRandomizerDeck= {
 		new Bazaar()
@@ -30,12 +30,9 @@ public interface Card extends Serializable, Comparable<Card> {
 	public static final Card[] startingHand = new Card[10];
 
 	public int getCost();
-	//How can I make it an error if these aren't overridden?
-	public String toString();
-	public boolean equals(Object other);
 
+	@SuppressWarnings("serial")
 	public abstract static class DefaultCard implements Card {
-		private static final long serialVersionUID = 1L;
 		@Override public String toString() { return this.getClass().getSimpleName(); }
 		@Override public boolean equals(Object other) { return (other.getClass() == this.getClass()); }
 		@Override
@@ -80,9 +77,8 @@ public interface Card extends Serializable, Comparable<Card> {
 		@Override public int getVictoryPoints() { return 6; }
 	}
 
-	//TODO: should it implement VictoryCard? probably not...
-	// 		maybe should implement its own "Curse" type?
-	public static class Curse extends DefaultCard implements Card {
+	//TODO maybe should implement its own "CurseCard" type?
+	public static class Curse extends DefaultCard {
 		private static final long serialVersionUID = 1L;
 		@Override public int getCost() { return 0; }
 		public int getVictoryPoints() { return -1; }
@@ -200,7 +196,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 	}
 
-	public class Witch extends DefaultCard implements AttackCard, InteractingCard {
+	public class Witch extends DefaultCard implements AttackCard {
 		private static final long serialVersionUID = 1L;
 
 		@Override

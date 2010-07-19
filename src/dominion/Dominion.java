@@ -56,7 +56,6 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 
 	static final int NUM_CARDS_IN_HAND = 5;
 
-	private int numPlayers;
 	private int windowWidth, windowHeight;
 
 	public int localPlayer;
@@ -92,7 +91,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 	public static void main(String[] args) throws IOException {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (Exception ignored) { }
+		} catch (Exception ignored) { /* if it didn't work, it didn't work. */ }
 
 		new Dominion().setVisible(true);
 	}
@@ -250,6 +249,8 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		case waitingForSelectFromHand:
 			select = true;
 			break;
+		case none:
+			break;
 		}
 		
 		nomoreAct.setVisible(han);
@@ -379,7 +380,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		case none:
 			if(act.equals("Start New Game")) {
 				String name = JOptionPane.showInputDialog(this, "What is your name?");
-				numPlayers = Integer.parseInt(JOptionPane.showInputDialog(this, "How many players?"));
+				int numPlayers = Integer.parseInt(JOptionPane.showInputDialog(this, "How many players?"));
 
 				new ServerAccepter(numPlayers).start();
 				new ClientHandler(name, HOME_PORT, DEFAULT_PORT).start();
@@ -387,6 +388,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 				String name = JOptionPane.showInputDialog(this, "What is your name?");
 				new ClientHandler(name, null, DEFAULT_PORT).start();
 			}
+			break;
 		default:
 			// do nothing				
 		}
@@ -428,6 +430,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		//TODO how is ClientTurn going to be able to trash cards?
 	}
 
+	@Override
 	public void trashCardSelection(int playerNum, CardListDecision cld) {
 		for(Card c : cld.list) {
 			System.out.println("Player " + playerNum + " trashed " + c);
@@ -535,6 +538,8 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		}
 
 		// Connect to the server, loop getting messages
+		@SuppressWarnings("hiding")
+		@Override
 		public void run() {
 			while(true) {
 				try {
@@ -622,6 +627,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 			JButton launch = new JButton("Launch");
 			launch.addActionListener(new ActionListener() {
 
+				@SuppressWarnings("hiding")
 				@Override
 				public void actionPerformed(ActionEvent arg0) {
 					//TODO maybe check all valid first?
@@ -673,6 +679,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 			d.setVisible(true);	
 		}
 
+		@Override
 		public void run() {
 			setupPlayerConnections();
 		}
@@ -709,6 +716,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		}
 	}
 
+	@Override
 	public void setupCardSelection(int upperLimit, boolean exact) {
 		String amount = (exact)?"exactly":"at most";
 		message.setText("Choose " + amount + " " + upperLimit + " card(s) to trash from your hand.");

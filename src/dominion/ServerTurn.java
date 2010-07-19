@@ -63,10 +63,8 @@ public class ServerTurn extends Turn {
 				requestPlay();
 				return;
 			}
-			else {
-				computeBuyingPower();
-				numActionsLeft = 0;
-			}
+			computeBuyingPower();
+			numActionsLeft = 0;
 		}
 		if(numBuysLeft > 0) {
 			//prompt to buy a card or choose not to
@@ -89,6 +87,7 @@ public class ServerTurn extends Turn {
 		continueTurn();
 	}
 
+	@Override
 	public void playCard(Card c) {
 		System.out.println("Attempting to play " + c);
 		if(c == null) {
@@ -184,6 +183,7 @@ public class ServerTurn extends Turn {
 		return false;
 	}
 
+	@Override
 	public void revealHand() {
 		//TODO: send server a message to send your hand to everyone else
 	}

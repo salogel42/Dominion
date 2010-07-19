@@ -1,11 +1,112 @@
-coppersmith
-councilroom
-courtyard
-cutpurse - attack
-baron
-cellar
-chancellor
-explorer
-feast
-workshop
-ironworks
+Implemented:
+5 Bazaar – +1 Card, +2 Actions, +1 .
+2 Chapel – Trash up to 4 cards from your hand.
+4 Conspirator – +2 . If you played 3 or more Actions this turn (counting this): +1 Card, +1 Action.
+5 Festival – +2 Actions, +1 Buy, +2 .
+3 Great Hall – +1 Card. +1 Action. 1 .
+6 Harem – 2 , 2 .
+5 Laboratory – +2 Cards, +1 Action.
+5 Market – +1 Card, +1 Action, +1 Buy, +1
+2 Moat – +2 Cards. Reaction: When another player plays an Attack card, you may reveal this from your hand. If you do, you are unaffected by that attack.
+3 Shanty Town – +2 Actions. Reveal your hand. If you have no actions cards in hand, +2 Cards.
+4 Smithy – +3 Cards.
+3 Village – +1 Card. +2 Actions.
+5 Witch – +2 Cards. Each other player gains a Curse card.
+3 Woodcutter – +1 Buy, +2 .
+
+Should be fairly easy:
+4 Moneylender – Trash a Copper card from your hand. If you do, +3 .
+5 Council Room – +4 Cards, +1 Buy. Each other player draws a card.
+5 Tribute – The player to your left reveals and then discards the top 2 cards of his deck. For each different named card revealed, if it an... Action card, +2 Actions, Treasure card, +2 , Victory Card, +2 Cards.
+4 Sea Hag – Each other player discards the top card of his deck, then gains a Curse card, putting it on top of his deck.
+4 Bureaucrat – Gain a Silver Card: put it on top of your deck. Each other player reveals a Victory card from his hand and puts it on his deck (or reveals a hand with no Victory cards).
+
+2 Cellar – +1 Action. Discard any number of cards. +1 Card per card discarded.
+2 Courtyard – +3 Cards. Put a card from your hand on top of your deck.
+
+5 Mine – Trash a Treasure card from your hand. Gain a Treasure card costing up to 3 more; put it into your hand.
+
+4 Feast –Trash this card. Gain a card costing up to 5 coin.
+
+4 Ironworks – Gain a card costing up to 4 . If it is an… Action card, +1 Action. Treasure card, +1 . Victory card, +1 Card.
+3 Workshop – Gain a card costing up to 4 .
+
+3 Chancellor – +2 . You may immediately put your deck into your discard pile.
+4 Baron – +1 Buy. You may discard an estate card. If you do, +4 . Otherwise, gain an estate card.
+4 Cutpurse – +2 . Each other player discards a Copper card (or reveals a hand with no Copper).
+5 Explorer – You may reveal a Province card from your hand. If you do, gain a Gold card, putting it into your hand. Otherwise, gain a Silver card, putting it into your hand.
+5 Ghost Ship – +2 Cards. Each other player with 4 or more cards in hand puts cards from his hand on top of his deck until he has 3 cards in his hand.
+6 Nobles – Choose 1: +3 Cards; or +2 Actions. 2 .
+2 Pawn – Choose two: +1 Card, +1 Action, +1 Buy, +1 . (The choices must be different.)
+2 Pearl Diver – +1 Card, +1 Action. Look at the bottom card of your deck. You may put it on top.
+4 Remodel – Trash a card from your hand. Gain a card costing up to 2 more than the trashed card.
+5 Saboteur – Each other player reveals cards from the top of his deck until revealing one costing 3 or more. He trashes that card and may gain a card costing at most 2 less than it. He discards the other revealed cards.
+4 Salvager – +1 Buy. Trash a card from your hand. + equal to its cost.
+5 Upgrade – +1 Card, +1 Action. Trash a card form your hand. Gain a card costing exactly 1 more than it.
+3 Warehouse +3 Cards, +1 Action. Discard 3 cards.
+3 Wishing Well – +1 Card. +1 Action. Name a card. Reveal the top card of your deck. If it’s the named card, put it into your hand.
+5 Minion – 1 Action. Choose one: +2 ; or discard your hand, + 4 cards, and each other player with at least 5 cards in hand discards his hand and draws 4 cards.
+4 Thief – Each other player reveals the top 2 cards of his deck. If they revealed any Treasure cards, they trash one of them that you choose. You may gain any or all of these trashed cards. They discard the other revealed cards.
+5 Torturer – +3 Cards. Each other player chooses one: he discards 2 cards; or he gains a Curse card, putting it in his hand.
+5 Trading Post – Trash 2 cards from your hand. If you do, gain a Silver card; put it into your hand.
+4 Treasure Map – Trash this and another copy of Treasure Map from your hand. If you do trash two Treasure Maps, gain 4 Gold cards, putting them on top of your deck.
+5 Treasury – +1 Card, +1 Action, +1 . When you discard this from play, if you didn’t buy a Victory card this turn, you may put this on top of your deck.
+3 Steward – Choose one: +2 cards; or +2 ; or trash 2 cards from your hand.
+3 Swindler – +2 . Each other player trashes the top card of his deck and gains a card of the same cost that you choose.
+4 Militia – +2 . Each other player discards down to 3 cards in his hand.
+3 Masquerade – +2 Cards. Each player passes a card from his hand to the left at once. Then you may trash a card from your hand.
+3 Lookout – +1 Action. Look at the top 3 cards of your deck. Trash one of them. Discard one of them. Put the other one on top of your deck.
+4 Mining Village – +1 Card, +2 Actions. You may trash this card immediately, If you do, +2 .
+2 Secret Chamber – Discard any number of cards. +1 coin for per card discarded.  Reaction: When another player plays an Attack card, you may reveal this from your hand. If you do, +2 Cards, then put 2 cards from your hand on top of your deck.
+
+duration:
+3 Fishing Village – +2 Actions, +1 . At the start of your next turn: +1 Action, +1 .
+5 Merchant Ship – Now and at the start of your next turn: +2 .
+5 Outpost – You only draw 3 cards (instead of 5) in this turn’s Clean-up phase. Take an extra turn after this one. This can’t cause you to take more than two consecutive turns.
+4 Caravan – +1 Card, +1 Action. At the start of your next turn, +1 Card.
+2 Lighthouse – + 1 Action. Now and at the start of your next turn: +1 . While this is in play, when another player plays an Attack card, it doesn’t affect you.
+5 Tactician – Discard your hand. If you discarded any cards this way, then at the start of your next turn, +5 Cards, +1 Buy, and +1 Action.
+
+need "look at"/"reveal"/"set aside" pane
+4 Spy – +1 Card, +1 Action. Each player (including you) reveals the top card of his deck and either discards it or puts it back, your choice.
+6 Adventurer – Reveal cards from your deck until you reveal 2 Treasure cards. Put those Treasure cards into your hand and discard the other revealed cards.
+5 Library – Draw until you have 7 cards in hand. You may set aside any Action cards drawn this way, as you draw them; discard the set aside cards after you finish drawing.
+4 Navigator – +2 . Look at the top 5 cards of your deck. Either discard all of them, or put them back on top of your deck in any order.
+4 Scout – Reveal the top 4 cards of your deck. Put the revealed Victory cards into your hand. Put the other cards on top your deck in any order.
+
+need mats
+2 Haven – +1 Card, +1 Action. Set aside a card from your hand face down. At the start of your next turn, put it into your hand.
+4 Island – Set aside this and another card from your hand. Return them to your deck at the end of the game. 2 .
+2 Native Village – +2 Actions Choose one: Set aside the top card of your deck face down on your Native Village mat; or put all the cards from your mat into your hand. You may look at the cards on your mat at any time; return them to your deck at the end of the game.
+4 Pirate Ship – Choose one: Each other player reveals the top 2 cards of his deck, trashes a revealed Treasure that you choose, discards the rest, and if anyone trashed a Treasure you take a Coin token; or, +1 per Coin token you’ve taken with Pirate Ships this game.
+
+need thinking:
+4 Bridge – +1 Buy, +1 . All cards (including cards in players’ hands) cost 1 less this turn, but no less than 0 .
+5 Duke – Worth 1 for each Duchy you have.
+4 Gardens – Worth 1 for every 10 cards in your deck (rounded down).
+4 Coppersmith – Copper produces an extra 1 this turn.
+2 Embargo –+2 . Trash this card. Put an Embargo token on top of a Supply pile. When a player buys a card, he gains a Curse card per Embargo token on that pile.
+3 Smugglers – Gain a copy of a card costing up to 6 that the player to your right gained on his last turn.
+3 Ambassador – Reveal a card from your hand. Return up to 2 copies of it from your hand to the Supply. Then each other player gains a copy of it.
+4 Throne Room – Choose an Action card in your hand. Play it Twice.
+
+
+Promo:
+4 Envoy – Reveal the top 5 cards of your deck. The player to the left chooses one for you to discard. Draw the rest.
+3 Black Market – +2 . Reveal the top 3 cards of the Black Market deck. You may buy one of them immediately. Put the unbought cards on the bottom of the Black Market deck in any order. (Before the game, make a Black Market deck out of one copy of each Kingdom card not in the supply.)
+5 Stash – 2 , When you shuffle, you may put this anywhere in your deck.
+
+Alchemy:
+3 Alchemist – +2 Cards, +1 Action. When you discard this from play, you may put this on top of your deck if you have a Potion in play.
+2 Apothecary – +1 Card, +1 Action. Reveal the top 4 cards of your deck. Put the revealed Coppers and Potions into your hand. Put the other cards back on top of your deck in any order.
+5 Apprentice – +1 Action. Trash a card from your hand. +1 Card per it costs. +2 Cards if it has Potion in its cost.
+3 Familiar – +1 Card, +1 Action. Each other player gains a Curse.
+4 Golem – Reveal cards from your deck until you reveal 2 Action cards other than Golem cards. Discard the other cards, then play the Action cards in either order.
+2 Herbalist – +1 Buy, +1 . When you discard this from play, you may put one of your Treasures from play on top of your deck.
+3 Philosopher’s Stone – When you play this, count your deck and discard pile. Worth 1 per 5 cards total between them (rounded down).
+6 Possession – The player to your left takes an extra turn after this one, in which you can see all cards he can and make all decisions for him. Any cards he would gain on that turn, you gain instead; any cards of his that are trashed are set aside and returned to his discard pile at the end of turn.
+3 Scrying Pool – +1 Action. Each player (including you) reveals the top card of his deck and either discards it or puts it back, your choice. Then reveal cards from the top of your deck until revealing one that isn‘t an Action. Put all of your revealed cards into your hand.
+Transmute – Trash a card from your hand. If it is a… Action card, gain a Duchy. Treasure card, gain a Transmute. Victory card, gain a Gold.
+3 University – +2 Actions. You may gain an Action card costing up to 5 .
+Vineyard – Worth 1 for every 3 Action cards in your deck (rounded down).
+5 Wharf – Now and at the start of your next turn: +2 Cards, +1 Buy.

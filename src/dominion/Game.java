@@ -35,6 +35,7 @@ public class Game implements StreamListener {
 		public boolean isEmpty() {
 			return numLeft == 0;
 		}
+		@Override
 		public String toString() {
 			return "There are " + numLeft + " " + type + "s left";
 		}
@@ -193,6 +194,7 @@ public class Game implements StreamListener {
 			return (emptyStacks > 2);
 		}
 		
+		@Override
 		public String toString() {
 			return playerNum + " " + streams + " " + deck + " "  + nextTurn;
 		}
@@ -368,6 +370,7 @@ public class Game implements StreamListener {
 		case cardsWereShuffled:
 		case endScore:
 			System.out.println("Server: The action " + message.action + " should never be sent to the server!  Something is wrong.");
+			break;
 		default: 
 			System.out.println("Server: Missing a case:" + message.action + "!");
 		}
