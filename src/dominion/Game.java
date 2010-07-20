@@ -19,7 +19,6 @@ import dominion.card.Decision.StackDecision;
 
 public class Game implements StreamListener {
 
-	enum Pos { NORTH, EAST, SOUTH, WEST};
 	PlayerInfo[] players;
 	
 	public static class CardStack implements Serializable, Comparable<CardStack>{
@@ -267,17 +266,6 @@ public class Game implements StreamListener {
 		RemoteMessage rm = new RemoteMessage(Action.stack, -1, null, new StackDecision(stacks)); 
 		for(PlayerInfo pi : players)
 			pi.streams.sendMessage(rm);
-	}
-	
-	public Pos ordToPos(int ord) {
-		int numPlayers = players.length;
-		switch(ord % numPlayers) {
-		case 0: return Pos.SOUTH;
-		case 1: return Pos.WEST;
-		case 2: return (numPlayers == 4)? Pos.NORTH : Pos.EAST; 
-		case 3: return Pos.EAST;
-		default: return null;
-		}
 	}
 	
 	private void playCard(RemoteMessage message) {
