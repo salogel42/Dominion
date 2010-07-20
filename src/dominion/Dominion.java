@@ -36,7 +36,6 @@ import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 
 import dominion.Game.CardStack;
-import dominion.Game.Pos;
 import dominion.Game.ScoresObject;
 import dominion.RemoteMessage.Action;
 import dominion.card.ActionCard;
@@ -417,7 +416,6 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 	
 	public class PlayerModel {
 		final int playerNumber;
-		Pos p;
 		ClientTurn turn;
 		//TODO: potentially some indication of how many cards are in
 		//deck/discard pile? (but not exact counts, since you 
