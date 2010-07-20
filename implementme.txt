@@ -1,5 +1,4 @@
 Should be fairly easy:
-5 Council Room – +4 Cards, +1 Buy. Each other player draws a card.
 5 Tribute – The player to your left reveals and then discards the top 2 cards of his deck. For each different named card revealed, if it an... Action card, +2 Actions, Treasure card, +2 , Victory Card, +2 Cards.
 4 Sea Hag – Each other player discards the top card of his deck, then gains a Curse card, putting it on top of his deck.
 4 Bureaucrat – Gain a Silver Card: put it on top of your deck. Each other player reveals a Victory card from his hand and puts it on his deck (or reveals a hand with no Victory cards).
@@ -64,7 +63,7 @@ need mats
 2 Native Village – +2 Actions Choose one: Set aside the top card of your deck face down on your Native Village mat; or put all the cards from your mat into your hand. You may look at the cards on your mat at any time; return them to your deck at the end of the game.
 4 Pirate Ship – Choose one: Each other player reveals the top 2 cards of his deck, trashes a revealed Treasure that you choose, discards the rest, and if anyone trashed a Treasure you take a Coin token; or, +1 per Coin token you’ve taken with Pirate Ships this game.
 
-need thinking:
+need thinking/special stuff:
 4 Bridge – +1 Buy, +1 . All cards (including cards in players’ hands) cost 1 less this turn, but no less than 0 .
 5 Duke – Worth 1 for each Duchy you have.
 4 Gardens – Worth 1 for every 10 cards in your deck (rounded down).
@@ -112,3 +111,4 @@ Already Implemented:
 5 Witch – +2 Cards. Each other player gains a Curse card.
 3 Woodcutter – +1 Buy, +2 .
 4 Moneylender – Trash a Copper card from your hand. If you do, +3 .
+5 Council Room – +4 Cards, +1 Buy. Each other player draws a card.

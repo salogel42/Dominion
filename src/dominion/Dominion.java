@@ -301,7 +301,6 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		// TODO Auto-generated method stub
 		String act = e.getActionCommand();
 		RemoteMessage rm;
 
