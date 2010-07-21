@@ -10,6 +10,7 @@ import dominion.RemoteMessage.Action;
 import dominion.card.ActionCard;
 import dominion.card.Card;
 import dominion.card.ComplexDecisionCard;
+import dominion.card.Decision;
 import dominion.card.Decision.CardListDecision;
 import dominion.card.Decision.GainDecision;
 import dominion.card.TreasureCard;
@@ -112,22 +113,60 @@ public class ServerTurn extends Turn {
 		continueTurn();
 	}
 
-	//card must verify appropriate number
-	public void trashCardsFromHand(CardListDecision cld) {
-		System.out.println("Trashing cards from hand " + cld.list);
-		for(Card c : cld.list)
-			//TODO bah, need to check that the right number of them are around
-			if(!inHand.contains(c)) {
-				System.out.println("Oh no, tried to trash something not in hand!");
-				return; //TODO send "bad decision" message
+	//this message essentially confirms decision was legal, go ahead and show 
+	//changes in the display
+	private void sendConfirmDecision(Decision d) {
+		player.streams.sendMessage(new RemoteMessage(Action.sendDecision, player.playerNum, inProgress, d));
+	}
+
+	private boolean checkCardListInHand(CardListDecision cld) {
+		//TODO keep hand sorted all the time - i.e. before you send (so you don't 
+		//call sort multiple times, may be a noop on later calls anyway, though)
+		Collections.sort(inHand);
+		Collections.sort(cld.list);
+		//start at the beginning of both lists and try to match each member
+		//of cld.list to one in inHand
+		int l = 0;
+		for(int h = 0; h < inHand.size() && l < cld.list.size(); h++) {
+			if(inHand.get(h).compareTo(cld.list.get(l)) > 0) {
+				//We got to something in the hand that skips past next one in the list
+				return false;
 			}
-		for(Card c : cld.list) {
-			this.trashCard(c);
+			if(inHand.get(h).equals(cld.list.get(l))) {
+				//We found this one, we can move on
+				l++;
+			}
+			//now we move on to the next one inHand (by means of for loop increment)
 		}
-		//TODO problem!!! May or may not have already computed buying power
+		if(l < cld.list.size()) //didn't get all the way through
+			return false;
+		return true;
+	}
+
+	//card must verify appropriate number
+	public boolean trashCardsFromHand(CardListDecision cld) {
+		System.out.println("Trashing these cards from hand " + cld.list);
+		if(!checkCardListInHand(cld)) {
+			requestDecision(inProgress);
+			return false;
+		}
+		for(Card c : cld.list) this.trashCard(c);
 		System.out.println("Got through trashing");
-		player.streams.sendMessage(new RemoteMessage(Action.sendDecision, player.playerNum, inProgress, cld));
-//		player.trashCard(c);
+		sendConfirmDecision(cld);
+		return true;
+	}
+
+	//card must verify appropriate number
+	public boolean discardCardsFromHand(CardListDecision cld) {
+		System.out.println("Discarding cards from hand " + cld.list);
+		if(!checkCardListInHand(cld)) {
+			requestDecision(inProgress);
+			return false;
+		}
+		for(Card c : cld.list) this.discardCard(c);
+		System.out.println("Got through discarding");
+		sendConfirmDecision(cld);
+		return true;
 	}
 
 	public void buyCards(List<Card> list) {
@@ -193,6 +232,12 @@ public class ServerTurn extends Turn {
 	public void trashCard(Card c) {
 		inHand.remove(c);
 		player.trashCard(c);
+	}
+
+	@Override
+	public void discardCard(Card c) {
+		inHand.remove(c);
+		player.discardCard(c);
 	}
 
 }

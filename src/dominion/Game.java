@@ -12,10 +12,10 @@ import dominion.card.ActionCard;
 import dominion.card.AttackCard;
 import dominion.card.Card;
 import dominion.card.Decision;
+import dominion.card.Decision.StackDecision;
 import dominion.card.InteractingCard;
 import dominion.card.ReactionCard;
 import dominion.card.VictoryCard;
-import dominion.card.Decision.StackDecision;
 
 public class Game implements StreamListener {
 
@@ -158,6 +158,11 @@ public class Game implements StreamListener {
 		//assumes caller has already removed it from appropriate place
 		public void trashCard(Card c) {
 			trash.add(c);
+		}
+
+		//assumes caller has already removed it from appropriate place
+		public void discardCard(Card c) {
+			discard.add(c);
 		}
 
 		public void cleanup() {

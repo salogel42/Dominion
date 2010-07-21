@@ -427,12 +427,21 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		//TODO how is ClientTurn going to be able to trash cards?
 	}
 
-	@Override
-	public void trashCard(int playerNum, Card c) {
+	private void removeCardFromHand(int playerNum, Card c) {
 		int i = playerModels[playerNum].turn.inHand.indexOf(c);
 		handPane.remove(i);
 		playerModels[playerNum].turn.inHand.remove(i);
 		
+	}
+	@Override
+	public void discardCard(int playerNum, Card c) {
+		removeCardFromHand(playerNum, c);
+	}
+
+	@Override
+	public void trashCard(int playerNum, Card c) {
+		removeCardFromHand(playerNum, c);
+		// TODO add to trash pile!
 	}
 
 	@Override
@@ -720,9 +729,10 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 	}
 
 	@Override
-	public void setupCardSelection(int upperLimit, boolean exact) {
-		String amount = (exact)?"exactly":"at most";
-		message.setText("Choose " + amount + " " + upperLimit + " card(s) to trash from your hand.");
+	public void setupCardSelection(int upperLimit, boolean exact, SelectionType type) {
+		String amount = (upperLimit == -1) ? "any number of cards":
+			(((exact) ? "exactly " : "at most ") + upperLimit + " card(s)");
+		message.setText("Choose " + amount + " to " + type + " from your hand.");
 
 //		TODO enforce how many more you MUST and/or CAN trash with GUI
 		state = GameState.waitingForSelectFromHand;
@@ -812,5 +822,4 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 			System.out.println("Missing a case:" + m.action + "!");
 		}
 	}
-
 }

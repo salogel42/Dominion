@@ -29,7 +29,7 @@ public interface Decision extends Serializable {
 			this.stacks = stacks;
 		}
 		@Override 
-		public String toString() { return stacks.toString(); }
+		public String toString() { return "Stacks: " + stacks.toString(); }
 	}
 	
 	public static class CardListDecision implements Decision {

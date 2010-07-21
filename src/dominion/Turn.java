@@ -59,5 +59,6 @@ public abstract class Turn {
 	public abstract void playCard(Card c);
 	public abstract void revealHand();
 	public abstract void trashCard(Card c);
+	public abstract void discardCard(Card c);
 
 }

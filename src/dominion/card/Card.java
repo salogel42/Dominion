@@ -3,6 +3,7 @@ package dominion.card;
 import java.io.Serializable;
 
 import dominion.DominionGUI;
+import dominion.DominionGUI.SelectionType;
 import dominion.ServerTurn;
 import dominion.Turn;
 import dominion.card.Decision.CardListDecision;
@@ -12,7 +13,7 @@ public interface Card extends Serializable, Comparable<Card> {
 	public static final VictoryCard[] victoryCards = {new Estate(), new Duchy(), new Province()};
 	public static final Card curse = new Curse();
 	public static final Card[] baseRandomizerDeck = {
-		new Chapel(), new Moat(), 
+		new Chapel(), new Cellar(), new Moat(), 
 		new Village(), new Woodcutter(), 
 		new Moneylender(), new Smithy(),
 		new CouncilRoom(), new Festival(), new Laboratory(), new Market(),
@@ -103,14 +104,47 @@ public interface Card extends Serializable, Comparable<Card> {
 		@Override
 		public void createAndSendDecisionObject(DominionGUI gui) {
 			//sets the GUI in motion
-			gui.setupCardSelection(4, false);
+			gui.setupCardSelection(4, false, SelectionType.trash);
 		}
 		@Override
 		public void continueProcessing(ServerTurn turn, Decision decision) {
 			System.out.println("processing chapel");
-			if(((CardListDecision)decision).list.size() <= 4)
-				turn.trashCardsFromHand((CardListDecision)decision);
-			turn.doneProcessing();
+			if(((CardListDecision)decision).list.size() <= 4) {
+				if(turn.trashCardsFromHand((CardListDecision)decision))
+					turn.doneProcessing();
+			}
+		}
+		@Override
+		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision) {
+			gui.trashCardSelection(playerNum, (CardListDecision)decision);
+		}
+	}	
+
+	public class Cellar extends DefaultCard implements ComplexDecisionCard {
+		private static final long serialVersionUID = 1L;
+		@Override public void playCard(Turn turn) { 
+			turn.addActions(1);
+			if(turn instanceof ServerTurn) {
+				((ServerTurn) turn).setInProgress(this);
+			}
+			//on the client side, just wait for the decision request
+		}
+		@Override public int getCost() { return 2; }
+		@Override public void startProcessing(ServerTurn turn) { turn.requestDecision(this); }
+		@Override
+		public void createAndSendDecisionObject(DominionGUI gui) {
+			//sets the GUI in motion
+			gui.setupCardSelection(-1, false, SelectionType.trash);
+		}
+		@Override
+		public void continueProcessing(ServerTurn turn, Decision decision) {
+			System.out.println("processing Cellar");
+			CardListDecision cld = (CardListDecision)decision;
+			int numCards = cld.list.size();
+			if(turn.discardCardsFromHand(cld)) {
+				turn.drawCards(numCards);
+				turn.doneProcessing();
+			}
 		}
 		@Override
 		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision) {
