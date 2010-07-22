@@ -255,9 +255,14 @@ public class Game implements StreamListener {
 		Collections.shuffle(randomizerDeck);
 		
 		ArrayList<CardStack> randomized = new ArrayList<CardStack>();
+		//TODO probably get rid of this eventually, for now, use for testing
+		for(int i = 0; i < Card.mustUse.length; i++) {
+			int numCards = (Card.mustUse[i] instanceof VictoryCard)? numVictory : 10;
+			randomized.add(new CardStack(Card.mustUse[i], numCards));
+		}
 		//pick 10 kinds from randomizerDeck
 		//TODO: make constants for numStacks, num cards in non-victory stack
-		for(int i = 0; i < 10; i++) {
+		for(int i = Card.mustUse.length; i < 10; i++) {
 			int numCards = (randomizerDeck.get(i) instanceof VictoryCard)? numVictory : 10;
 			randomized.add(new CardStack(randomizerDeck.get(i), numCards));
 		}

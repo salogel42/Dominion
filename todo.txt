@@ -3,7 +3,8 @@ Things left to do:
 make trash a real trash pile (i.e. make it so you can see the last thing trashed, 
 	maybe some indicator of how many things trashed?)
 
---make sure number of players entered is between 2 and 4 (maybe more later), reprompt if not
+--make sure number of players entered is between 2 and 4 (maybe more later, 
+	maybe solo mode) reprompt if not
 
 -at game end, play again/start game with new players?
 
@@ -14,7 +15,7 @@ add message box ("__ bought/revealed a __"/"___ shuffled deck") that always
 
 option to turn off tooltips/do it on right click instead of hover
 
-visual display of deck discard?  
+visual display of deck/discard?  maybe include a count of deck?  
 visual display of revealed/gained cards for other players?
 
 work on the whole "inProgress"/DecisionCard/DecisionObject thing

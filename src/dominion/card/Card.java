@@ -12,6 +12,11 @@ public interface Card extends Serializable, Comparable<Card> {
 	public static final TreasureCard[] treasureCards = {new Copper(), new Silver(), new Gold()};
 	public static final VictoryCard[] victoryCards = {new Estate(), new Duchy(), new Province()};
 	public static final Card curse = new Curse();
+
+	public static final Card[] mustUse = {
+//		new Cellar(), new Moat()
+	};
+
 	public static final Card[] baseRandomizerDeck = {
 		new Chapel(), new Cellar(), new Moat(), 
 		new Village(), new Woodcutter(), 
