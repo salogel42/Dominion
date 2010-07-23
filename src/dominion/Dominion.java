@@ -24,6 +24,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDesktopPane;
 import javax.swing.JDialog;
+import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
@@ -32,6 +33,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTextPane;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 
@@ -41,10 +43,10 @@ import dominion.RemoteMessage.Action;
 import dominion.card.ActionCard;
 import dominion.card.Card;
 import dominion.card.Decision;
-import dominion.card.DecisionCard;
 import dominion.card.Decision.CardListDecision;
 import dominion.card.Decision.GainDecision;
 import dominion.card.Decision.StackDecision;
+import dominion.card.DecisionCard;
 
 @SuppressWarnings("serial")
 public class Dominion extends JFrame implements StreamListener, ActionListener, DominionGUI {
@@ -72,7 +74,9 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 	List<HandCardButton> fromHand = new ArrayList<HandCardButton>();
 		
 	JDesktopPane desktopPane;
-	JInternalFrame supplyFrame, handFrame, playFrame;
+	JInternalFrame supplyFrame, handFrame, playFrame, messageBox;
+	JEditorPane messagePane;
+	String messageText = "";
 	
 	JLabel trash, message;
 	JButton supply[];
@@ -102,6 +106,13 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		windowWidth = 720;
 		windowHeight = 280;
 		this.setSize(windowWidth, windowHeight);
+
+		messageBox = new JInternalFrame("Game Messages: ", true, false, true, true);
+		desktopPane.add(messageBox);
+		messageBox.setVisible(true);
+		//TODO tweak the size/location
+		messageBox.setSize(200, 200);
+		messageBox.add(messagePane = new JTextPane());
 
 		JMenuBar mb = new JMenuBar();
 		mb.add(newMenu("Game", 'G',
@@ -206,14 +217,15 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 	}
 
 	private void resetFrameLocations() {
+		messageBox.setLocation(0,supplyFrame.getHeight());
 		handFrame.pack();
-		handFrame.setLocation(0, supplyFrame.getSize().height);
+		handFrame.setLocation(messageBox.getWidth(), supplyFrame.getHeight());
 		playFrame.pack();
-		playFrame.setLocation(handFrame.getSize().width, supplyFrame.getSize().height);
-		int width = Math.max(supplyFrame.getSize().width, 
-				handFrame.getSize().width + playFrame.getSize().width) + 20;
-		int height = supplyFrame.getSize().height + Math.max(handFrame.getSize().height, 
-				playFrame.getSize().height) + 50;
+		playFrame.setLocation(messageBox.getWidth() + handFrame.getWidth(), supplyFrame.getHeight());
+		int width = Math.max(supplyFrame.getWidth(), 
+				messageBox.getWidth() + handFrame.getWidth() + playFrame.getWidth()) + 20;
+		int height = supplyFrame.getHeight() + Math.max(handFrame.getHeight(), 
+				playFrame.getHeight()) + 50;
 		if(windowWidth < width || windowHeight < height) {
 			this.setSize(windowWidth = Math.max(windowWidth, width), 
 					windowHeight = Math.max(windowHeight, height));
@@ -735,11 +747,21 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		message.setText("Choose " + amount + " to " + type + " from your hand.");
 
 //		TODO enforce how many more you MUST and/or CAN trash with GUI
+		//right now, this is enforced only on the server side, and a new selection
+		//will be requested if an invalid one is sent.
 		state = GameState.waitingForSelectFromHand;
 		
 		enableButtons(-1);
 
 	}
+	
+	private String getImageLinkForCard(Card c) {
+	  	return c.toString();
+//	  	return "<html><img src=\"" +
+//			"file:" + IMAGE_PATH + getImageNameForCard(c) + 
+//			"\"></img></html>" + c;
+	}
+	
 	@Override
 	public void recieveMessage(RemoteMessage m) {
 		System.out.println("Got message: " + m);
@@ -749,16 +771,19 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 			setupSupplyGUI();
 			break;
 		case cardsWereShuffled:
-			System.out.println("Player " + m.playerNum + " shuffled his/her cards.");
+			messageText += names[m.playerNum] + " shuffled his/her cards.\n";
+			messagePane.setText(messageText);
 			//TODO visual display
 			break;
 		case gainCard:
-			System.out.println("Player " + m.playerNum + " gained " + m.card);
+			messageText += names[m.playerNum] + " gained: " + getImageLinkForCard(m.card) + "\n";
+			messagePane.setText(messageText);
 			removeFromSupply(m.card);
 			//TODO add to discard
 			break;
 		case playCard:
-			System.out.println("Player " + m.playerNum + " played " + m.card);
+			messageText += names[m.playerNum] + " played: " + getImageLinkForCard(m.card) + "\n";
+			messagePane.setText(messageText);
 			if(m.playerNum == localPlayer) {
 				int i = playerModels[m.playerNum].turn.inHand.indexOf(m.card);
 				handPane.remove(i);
@@ -773,6 +798,9 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 			if(m.playerNum == localPlayer){
 				handPane.add(new HandCardButton(m.card, this));
 				resetFrameLocations();
+			} else {
+				messageText += names[m.playerNum] + " drew a card.\n";
+				messagePane.setText(messageText);
 			}
 			break;
 		case chooseAction: 
@@ -792,7 +820,15 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 				enableButtons(((GainDecision)m.decisionObject).upperLimit);
 			}
 			break;
-		case endTurn: endTurn(m.playerNum); break;
+		case endTurn: 
+			endTurn(m.playerNum); 
+			if(m.playerNum == localPlayer)
+				//clear so that you only ever see what happened since your last turn
+				messageText = "";
+			else
+				messageText += names[m.playerNum] + " finished his/her turn.\n";
+			messagePane.setText(messageText);
+			break;
 		case endScore: 
 			scores = ((ScoresObject)m.decisionObject).scores;
 			winner = ((ScoresObject)m.decisionObject).winnerIndex;

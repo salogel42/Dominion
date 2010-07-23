@@ -77,8 +77,8 @@ public class Game implements StreamListener {
 				deck.addAll(discard);
 				discard.clear();
 				Collections.shuffle(deck);
-				
-				//TODO: send message: shuffled
+				//notify all players that you had to shuffle 
+				sendShuffled();
 			}
 			if(!deck.isEmpty()) { //i.e. there was something in discard
 				Card c = deck.pop();
@@ -296,18 +296,17 @@ public class Game implements StreamListener {
 	public static class ScoresObject implements Decision {
 		private static final long serialVersionUID = 1L;
 		int[] scores;
-		int winnerIndex;//TODO ties?
-		public ScoresObject(int numPlayers) {
-			scores = new int[numPlayers];
-			winnerIndex = 0;
-		}
-		
-		public void setScore(int playerNum, int score) {
-			scores[playerNum] = score;
-		}
+		int winnerIndex = 0;//TODO ties?
 
-		public void setWinner(int playerNum) {
-			winnerIndex = playerNum;
+		public ScoresObject(int numPlayers) { scores = new int[numPlayers]; }
+		public void setScore(int playerNum, int score) { scores[playerNum] = score; }
+		public void setWinner(int playerNum) { winnerIndex = playerNum; }
+		
+		@Override public String toString() {
+			String result = "Scores: " + "[";
+			for(int score : scores)
+				result += score + " ";
+			return  result + "]. Winner: " + winnerIndex;
 		}
 	}
 	
