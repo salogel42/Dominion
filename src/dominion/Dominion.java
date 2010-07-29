@@ -390,8 +390,10 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		case none:
 			if(act.equals("Start New Game")) {
 				String name = JOptionPane.showInputDialog(this, "What is your name?");
-				int numPlayers = Integer.parseInt(JOptionPane.showInputDialog(this, "How many players?"));
-
+				int numPlayers = -1;
+				while(numPlayers < 2 || numPlayers > 4)
+					numPlayers = Integer.parseInt(JOptionPane.showInputDialog(this, 
+							"How many players (must be between 2 and 4, inclusive)?"));
 				new ServerAccepter(numPlayers).start();
 				new ClientHandler(name, HOME_PORT, DEFAULT_PORT).start();
 			} else if(act.equals("Join Game")) {
