@@ -36,7 +36,7 @@ public class ClientTurn extends Turn {
 		gui.trashCard(playerNum, c);		
 	}
 	@Override
-	public void discardCard(Card c) {
+	public void discardCardFromHand(Card c) {
 		gui.discardCard(playerNum, c);		
 	}
 

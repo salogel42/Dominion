@@ -17,6 +17,7 @@ import dominion.card.TreasureCard;
 
 public class ServerTurn extends Turn {
 	private PlayerInfo player;
+	private boolean bpComputed = false;
 
 	public ComplexDecisionCard inProgress = null;
 	
@@ -39,12 +40,15 @@ public class ServerTurn extends Turn {
 		player.streams.sendMessage(new RemoteMessage(Action.chooseBuy, player.playerNum, null, new GainDecision(upperLimit, numGains)));
 	}
 	
+	//Note: it will only actually be computed once, no matter how many times it is called
 	public void computeBuyingPower()
 	{
+		if(bpComputed) return;
 		for(Card card : inHand) {
 			if(card instanceof TreasureCard) 
 				buyingPower += ((TreasureCard)card).getValue();
 		}
+		bpComputed = true;
 	}
 
 	public void startTurn() {
@@ -64,11 +68,11 @@ public class ServerTurn extends Turn {
 				requestPlay();
 				return;
 			}
-			computeBuyingPower();
 			numActionsLeft = 0;
 		}
 		if(numBuysLeft > 0) {
 			//prompt to buy a card or choose not to
+			computeBuyingPower();
 			requestBuy(buyingPower, numBuysLeft);
 		} 
 		else {
@@ -83,8 +87,6 @@ public class ServerTurn extends Turn {
 
 	public void doneProcessing() {
 		inProgress = null;
-		if(numActionsLeft == 0)
-			computeBuyingPower();
 		continueTurn();
 	}
 
@@ -105,9 +107,6 @@ public class ServerTurn extends Turn {
 					break;
 				}
 			}
-		}
-		if(numActionsLeft == 0 && inProgress == null) {
-			computeBuyingPower();
 		}
 		//TODO: send a "it wasn't valid" message?
 		continueTurn();
@@ -163,7 +162,7 @@ public class ServerTurn extends Turn {
 			requestDecision(inProgress);
 			return false;
 		}
-		for(Card c : cld.list) this.discardCard(c);
+		for(Card c : cld.list) this.discardCardFromHand(c);
 		System.out.println("Got through discarding");
 		sendConfirmDecision(cld);
 		return true;
@@ -216,7 +215,13 @@ public class ServerTurn extends Turn {
 
 	@Override
 	public void revealHand() {
-		//TODO: send server a message to send your hand to everyone else
+		player.sendHandReveal(new CardListDecision(inHand));
+	}
+
+	public Card revealTopCard() {
+		Card c =  player.getTopCard();
+		player.sendDeckReveal(c);
+		return c;
 	}
 
 	public void gainCurse() {
@@ -235,9 +240,17 @@ public class ServerTurn extends Turn {
 	}
 
 	@Override
-	public void discardCard(Card c) {
+	public void discardCardFromHand(Card c) {
 		inHand.remove(c);
 		player.discardCard(c);
 	}
 
+	public void discardCard(Card c) {
+		player.discardCard(c);
+	}
+
+	public ServerTurn currentTurn() { return player.currentTurn(); }
+	public int currentPlayer() { return player.currentPlayer(); }
+	public int numPlayers() { return player.numPlayers(); }
+	public int playerNum() { return player.playerNum; }
 }

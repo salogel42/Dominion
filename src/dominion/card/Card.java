@@ -1,6 +1,8 @@
 package dominion.card;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import dominion.DominionGUI;
 import dominion.DominionGUI.SelectionType;
@@ -13,8 +15,7 @@ public interface Card extends Serializable, Comparable<Card> {
 	public static final VictoryCard[] victoryCards = {new Estate(), new Duchy(), new Province()};
 	public static final Card curse = new Curse();
 
-	public static final Card[] mustUse = {
-//		new Cellar(), new Moat()
+	public static final Card[] mustUse = { 
 	};
 
 	public static final Card[] baseRandomizerDeck = {
@@ -25,7 +26,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		new Witch()
 	};
 	public static final Card[] intrigueRandomizerDeck = {
-		new GreatHall(), new ShantyTown(), new Conspirator(), new Harem()
+		new GreatHall(), new ShantyTown(), new Conspirator(), new Tribute(), new Harem()
 	};
 	public static final Card[] seasideRandomizerDeck= {
 		new Bazaar()
@@ -317,6 +318,69 @@ public interface Card extends Serializable, Comparable<Card> {
 				turn.addActions(1);
 			}
 		}
+	}
+
+	public class Tribute extends DefaultCard implements InteractingCard, ComplexDecisionCard {
+		private static final long serialVersionUID = 1L;
+		@Override public int getCost() { return 5; }
+
+		@Override
+		public void playCard(Turn turn) {
+			if(turn instanceof ServerTurn) {
+				((ServerTurn) turn).setInProgress(this);
+			}
+			//now wait for the reaction
+		}
+
+		@Override
+		public void reactToCard(ServerTurn turn) {
+			//if you are player to the left, send your top two cards
+			if((turn.currentPlayer() + 1)%turn.numPlayers() == turn.playerNum()) {
+				ArrayList<Card> list = new ArrayList<Card>();
+				Card c = turn.revealTopCard();
+				turn.discardCard(c);
+				list.add(c);
+				turn.discardCard(c = turn.revealTopCard());
+				list.add(c);
+				CardListDecision cld = new CardListDecision(list);
+				//just do do it directly rather than sending things back and forth
+				this.continueProcessing(turn.currentTurn(), cld);
+			}
+			//everyone else just ignores it
+		}
+
+		@Override
+		public void createAndSendDecisionObject(DominionGUI gui) {
+			// no decision needed from the GUI for this card			
+		}
+
+		@Override
+		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision) {
+			// everything the tribute does will be put into effect by the continueProcessing method
+		}
+
+		@Override
+		public void startProcessing(ServerTurn turn) { /* reaction method handles getting the "decision" */ }
+
+		@Override
+		public void continueProcessing(ServerTurn turn, Decision decision) {
+			System.out.println("doing continueProcessing for a tribute");
+			List<Card> list = ((CardListDecision) decision).list;
+			if(list.size()!=2) return;//TODO do something smarter here?  not sure what
+			for(int i = 0; i < 2; i++) {
+				Card c = list.get(i);
+				//if both the same, only do it once
+				if(i == 1 && c.equals(list.get(0))) break;
+				//note, not else if -- if multiple it gets all of the bonuses!
+				if(c instanceof ActionCard) turn.addActions(2);
+				//TODO need to communicate the additional actions to the clientturn!
+				if(c instanceof VictoryCard) turn.drawCards(2);
+				if(c instanceof TreasureCard) turn.addBuyingPower(2);
+				//curses get nothing, as do nulls (i.e. if no cards were left in deck)
+			}
+			turn.doneProcessing();
+		}
+
 	}
 
 	public class Harem extends DefaultCard implements VictoryCard, TreasureCard {

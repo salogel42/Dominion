@@ -12,6 +12,7 @@ import dominion.card.ActionCard;
 import dominion.card.AttackCard;
 import dominion.card.Card;
 import dominion.card.Decision;
+import dominion.card.Decision.CardListDecision;
 import dominion.card.Decision.StackDecision;
 import dominion.card.InteractingCard;
 import dominion.card.ReactionCard;
@@ -72,7 +73,8 @@ public class Game implements StreamListener {
 		public void drawCards(int numCards) {
 			for(int i = 0; i < numCards; i++) drawCard();
 		}
-		public void drawCard() {
+		
+		public Card getTopCard() {
 			if(deck.isEmpty()) {
 				deck.addAll(discard);
 				discard.clear();
@@ -81,7 +83,13 @@ public class Game implements StreamListener {
 				sendShuffled();
 			}
 			if(!deck.isEmpty()) { //i.e. there was something in discard
-				Card c = deck.pop();
+				return deck.pop();
+			}
+			return null;
+		}
+		public void drawCard() {
+			Card c = getTopCard();
+			if(c != null) {
 				nextTurn.inHand.add(c);
 				sendCardToHand(c);
 			}
@@ -133,12 +141,21 @@ public class Game implements StreamListener {
 
 		}
 
-		public int numPlayers() {
-			return Game.this.players.length;
-		}
+		public int numPlayers() { return Game.this.players.length; }
+		
 		public void sendPlay(ActionCard c) {
 			for(PlayerInfo pi : Game.this.players)
 				pi.streams.sendMessage(new RemoteMessage(Action.playCard, playerNum, c, null));
+		}
+
+		public void sendDeckReveal(Card c) {
+			for(PlayerInfo pi : Game.this.players)
+				pi.streams.sendMessage(new RemoteMessage(Action.revealFromDeck, playerNum, c, null));
+		}
+
+		public void sendHandReveal(CardListDecision cld) {
+			for(PlayerInfo pi : Game.this.players)
+				pi.streams.sendMessage(new RemoteMessage(Action.revealFromHand, playerNum, null, cld));
 		}
 
 		public void sendGain(Card c) {
@@ -201,6 +218,13 @@ public class Game implements StreamListener {
 		@Override
 		public String toString() {
 			return playerNum + " " + streams + " " + deck + " "  + nextTurn;
+		}
+		
+		public ServerTurn currentTurn() { return Game.this.players[currentPlayer()].nextTurn; }
+		public int currentPlayer() { return Game.this.currPlayer; }
+		
+		public void sendDecisionToGame(RemoteMessage rm) {
+			Game.this.recieveMessage(rm);
 		}
 	}
 	private Stack<Card> trash;
