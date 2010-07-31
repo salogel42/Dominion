@@ -460,7 +460,12 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		removeCardFromHand(playerNum, c);
 		// TODO add to trash pile!
 	}
-
+	@Override
+	public void undrawCard(int playerNum, Card c) {
+		removeCardFromHand(playerNum, c);
+		//TODO add 1 to # in deck
+	}
+	
 	@Override
 	public void trashCardSelection(int playerNum, CardListDecision cld) {
 		for(Card c : cld.list) {

@@ -16,13 +16,13 @@ public interface Card extends Serializable, Comparable<Card> {
 	public static final Card curse = new Curse();
 
 	public static final Card[] mustUse = { 
-		new Bureaucrat()
+		new Courtyard()
 	};
 
 	public static final Card[] baseRandomizerDeck = {
 		new Chapel(), new Cellar(), new Moat(), 
 		new Village(), new Woodcutter(), 
-		new Moneylender(), new Smithy(),
+		new Bureaucrat(), new Moneylender(), new Smithy(),
 		new CouncilRoom(), new Festival(), new Laboratory(), new Market(),
 		new Witch()
 	};
@@ -349,6 +349,43 @@ public interface Card extends Serializable, Comparable<Card> {
 	}
 
 	//Intrigue
+	public class Courtyard extends DefaultCard implements ComplexDecisionCard {
+		private static final long serialVersionUID = 1L;
+		@Override public int getCost() { return 2; }
+
+		@Override
+		public void playCard(Turn turn) {
+			turn.drawCards(3);
+			if(turn instanceof ServerTurn) { ((ServerTurn) turn).setInProgress(this); }
+			//wait for processing code to ask for discard
+		}
+
+		@Override
+		public void createAndSendDecisionObject(DominionGUI gui) {
+			gui.setupCardSelection(1, true, SelectionType.undraw, null);
+		}
+
+		@Override
+		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision) {
+			gui.undrawCard(playerNum, ((CardListDecision)decision).list.get(0));
+		}
+
+		@Override
+		public void startProcessing(ServerTurn turn) {
+			turn.requestDecision(this);
+		}
+
+		@Override
+		public void continueProcessing(ServerTurn turn, Decision decision) {
+			// if not exactly 1 card, try again
+			if(((CardListDecision)decision).list.size() != 1) turn.requestDecision(this);
+			else {
+				turn.putOnDeckFromHand(((CardListDecision)decision).list.get(0));
+				turn.doneProcessing();
+			}
+		}
+	}
+
 	public class GreatHall extends DefaultCard implements ActionCard, VictoryCard {
 		private static final long serialVersionUID = 1L;
 		@Override public int getCost() { return 3; }
@@ -480,6 +517,5 @@ public interface Card extends Serializable, Comparable<Card> {
 			turn.addActions(2);
 			turn.addBuyingPower(1);
 		}
-	}
-	
+	}	
 }

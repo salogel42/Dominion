@@ -11,5 +11,6 @@ public interface DominionGUI {
 	public void trashCardSelection(int playerNum, CardListDecision cld);
 	public void trashCard(int playerNum, Card c);
 	public void discardCard(int playerNum, Card c);
+	public void undrawCard(int playerNum, Card c);
 
 }
