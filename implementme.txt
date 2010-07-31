@@ -2,7 +2,6 @@ Should be fairly easy:
 4 Sea Hag – Each other player discards the top card of his deck, then gains a Curse card, putting it on top of his deck.
 4 Bureaucrat – Gain a Silver Card: put it on top of your deck. Each other player reveals a Victory card from his hand and puts it on his deck (or reveals a hand with no Victory cards).
 
-2 Cellar – +1 Action. Discard any number of cards. +1 Card per card discarded.
 2 Courtyard – +3 Cards. Put a card from your hand on top of your deck.
 
 5 Mine – Trash a Treasure card from your hand. Gain a Treasure card costing up to 3 more; put it into your hand.
@@ -112,3 +111,4 @@ Already Implemented:
 4 Moneylender – Trash a Copper card from your hand. If you do, +3 .
 5 Council Room – +4 Cards, +1 Buy. Each other player draws a card.
 5 Tribute – The player to your left reveals and then discards the top 2 cards of his deck. For each different named card revealed, if it an... Action card, +2 Actions, Treasure card, +2 , Victory Card, +2 Cards.
+2 Cellar – +1 Action. Discard any number of cards. +1 Card per card discarded.

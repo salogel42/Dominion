@@ -787,6 +787,11 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 			messagePane.setText(messageText);
 			//TODO visual display
 			break;
+		case putOnDeck:
+			messageText += names[m.playerNum] + " put card on deck: " + getImageLinkForCard(m.card) +  ".\n";
+			messagePane.setText(messageText);
+			//TODO visual display
+			break;
 		case gainCard:
 			messageText += names[m.playerNum] + " gained: " + getImageLinkForCard(m.card) + "\n";
 			messagePane.setText(messageText);

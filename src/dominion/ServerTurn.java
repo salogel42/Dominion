@@ -245,9 +245,8 @@ public class ServerTurn extends Turn {
 		player.discardCard(c);
 	}
 
-	public void discardCard(Card c) {
-		player.discardCard(c);
-	}
+	public void putCardOnTopOfDeck(Card c) { player.putCardOnTopOfDeck(c); }
+	public void discardCard(Card c) { player.discardCard(c); }
 
 	public ServerTurn currentTurn() { return player.currentTurn(); }
 	public int currentPlayer() { return player.currentPlayer(); }

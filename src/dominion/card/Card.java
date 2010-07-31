@@ -16,6 +16,7 @@ public interface Card extends Serializable, Comparable<Card> {
 	public static final Card curse = new Curse();
 
 	public static final Card[] mustUse = { 
+		new SeaHag()
 	};
 
 	public static final Card[] baseRandomizerDeck = {
@@ -319,6 +320,18 @@ public interface Card extends Serializable, Comparable<Card> {
 			}
 		}
 	}
+	public class SeaHag extends DefaultCard implements AttackCard {
+		private static final long serialVersionUID = 1L;
+		@Override public int getCost() { return 4; }
+
+		@Override
+		public void reactToCard(ServerTurn turn) {
+			turn.discardCard(turn.revealTopCard());
+			turn.putCardOnTopOfDeck(Card.curse);
+		}
+
+		@Override public void playCard(Turn turn) { /* it's all in the reaction */ }
+	}
 
 	public class Tribute extends DefaultCard implements InteractingCard, ComplexDecisionCard {
 		private static final long serialVersionUID = 1L;
@@ -337,11 +350,8 @@ public interface Card extends Serializable, Comparable<Card> {
 			//if you are player to the left, send your top two cards
 			if((turn.currentPlayer() + 1)%turn.numPlayers() == turn.playerNum()) {
 				ArrayList<Card> list = new ArrayList<Card>();
-				Card c = turn.revealTopCard();
-				turn.discardCard(c);
-				list.add(c);
-				turn.discardCard(c = turn.revealTopCard());
-				list.add(c);
+				for(int i = 0; i < 2; i++) list.add(turn.revealTopCard());
+				for(int i = 0; i < 2; i++) turn.discardCard(list.get(i));
 				CardListDecision cld = new CardListDecision(list);
 				//just do do it directly rather than sending things back and forth
 				this.continueProcessing(turn.currentTurn(), cld);

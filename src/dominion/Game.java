@@ -172,6 +172,11 @@ public class Game implements StreamListener {
 				p.streams.sendMessage(new RemoteMessage(Action.endTurn, playerNum, null, null)); 
 		}
 
+		public void sendPutOnDeck(Card c) {
+			for(PlayerInfo pi : Game.this.players)
+				pi.streams.sendMessage(new RemoteMessage(Action.putOnDeck, playerNum, c, null));
+		}
+
 		//assumes caller has already removed it from appropriate place
 		public void trashCard(Card c) {
 			trash.add(c);
@@ -222,10 +227,11 @@ public class Game implements StreamListener {
 		
 		public ServerTurn currentTurn() { return Game.this.players[currentPlayer()].nextTurn; }
 		public int currentPlayer() { return Game.this.currPlayer; }
-		
-		public void sendDecisionToGame(RemoteMessage rm) {
-			Game.this.recieveMessage(rm);
+		public void putCardOnTopOfDeck(Card c) { 
+			deck.push(c); 
+			sendPutOnDeck(c);
 		}
+		
 	}
 	private Stack<Card> trash;
 	private ArrayList<CardStack> stacks;
