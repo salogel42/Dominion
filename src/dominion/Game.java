@@ -135,6 +135,7 @@ public class Game implements StreamListener {
 								react = ((ReactionCard)rc).reaction(players[i].nextTurn);
 					}
 					if(react) ic.reactToCard(players[i].nextTurn);
+					else players[currentPlayer()].nextTurn.playerIsDoneReacting(i);
 					System.out.println("Server: Player " + i + " should have reacted? " + react);
 				}
 			}
@@ -175,6 +176,11 @@ public class Game implements StreamListener {
 		public void sendPutOnDeck(Card c) {
 			for(PlayerInfo pi : Game.this.players)
 				pi.streams.sendMessage(new RemoteMessage(Action.putOnDeck, playerNum, c, null));
+		}
+
+		public void sendPutOnDeckFromHand(Card c) {
+			for(PlayerInfo pi : Game.this.players)
+				pi.streams.sendMessage(new RemoteMessage(Action.putOnDeckFromHand, playerNum, c, null));
 		}
 
 		//assumes caller has already removed it from appropriate place
@@ -227,9 +233,13 @@ public class Game implements StreamListener {
 		
 		public ServerTurn currentTurn() { return Game.this.players[currentPlayer()].nextTurn; }
 		public int currentPlayer() { return Game.this.currPlayer; }
-		public void putCardOnTopOfDeck(Card c) { 
+		public void putCardOnTopOfDeck(Card c, boolean fromHand) { 
 			deck.push(c); 
-			sendPutOnDeck(c);
+			if(fromHand) sendPutOnDeckFromHand(c);
+			else sendPutOnDeck(c);
+		}
+		public void doneReacting() {
+			Game.this.players[currentPlayer()].nextTurn.playerIsDoneReacting(playerNum);
 		}
 		
 	}
@@ -383,10 +393,10 @@ public class Game implements StreamListener {
 			}//TODO: what if non-current player tries to buy something?
 			break;
 		case sendDecision:
-			if(message.playerNum == currPlayer) {
-				players[currPlayer].nextTurn.inProgress.continueProcessing(players[currPlayer].nextTurn, 
+			// may need to process even if not your turn (i.e. Bureaucrat)
+			if(players[message.playerNum].nextTurn.inProgress != null)
+				players[message.playerNum].nextTurn.inProgress.continueProcessing(players[message.playerNum].nextTurn, 
 						message.decisionObject);
-			}
 			break;
 		case makeDecision:
 		case addCardToHand:

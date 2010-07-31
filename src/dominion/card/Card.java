@@ -16,7 +16,7 @@ public interface Card extends Serializable, Comparable<Card> {
 	public static final Card curse = new Curse();
 
 	public static final Card[] mustUse = { 
-		new SeaHag()
+		new Bureaucrat()
 	};
 
 	public static final Card[] baseRandomizerDeck = {
@@ -27,7 +27,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		new Witch()
 	};
 	public static final Card[] intrigueRandomizerDeck = {
-		new GreatHall(), new ShantyTown(), new Conspirator(), new Tribute(), new Harem()
+		new GreatHall(), new ShantyTown(), new Conspirator(), new SeaHag(), new Tribute(), new Harem()
 	};
 	public static final Card[] seasideRandomizerDeck= {
 		new Bazaar()
@@ -51,7 +51,12 @@ public interface Card extends Serializable, Comparable<Card> {
 			return getCost() - other.getCost();
 		}
 	}
-	
+
+	@SuppressWarnings("serial")
+	public abstract static class VictorySelectionCard extends DefaultCard implements SelectionCard {
+		@Override public boolean isSelectable(Card c) { return c instanceof VictoryCard; }
+	}
+
 	public static class Copper extends DefaultCard implements TreasureCard {
 		private static final long serialVersionUID = 1L;
 		@Override public int getCost() { return 0; }
@@ -111,7 +116,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		@Override
 		public void createAndSendDecisionObject(DominionGUI gui) {
 			//sets the GUI in motion
-			gui.setupCardSelection(4, false, SelectionType.trash);
+			gui.setupCardSelection(4, false, SelectionType.trash, null);
 		}
 		@Override
 		public void continueProcessing(ServerTurn turn, Decision decision) {
@@ -141,7 +146,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		@Override
 		public void createAndSendDecisionObject(DominionGUI gui) {
 			//sets the GUI in motion
-			gui.setupCardSelection(-1, false, SelectionType.trash);
+			gui.setupCardSelection(-1, false, SelectionType.discard, null);
 		}
 		@Override
 		public void continueProcessing(ServerTurn turn, Decision decision) {
@@ -190,6 +195,70 @@ public interface Card extends Serializable, Comparable<Card> {
 	}
 
 	//fours
+	public class Bureaucrat extends VictorySelectionCard implements AttackCard, ComplexDecisionCard {
+		private static final long serialVersionUID = 1L;
+		@Override public int getCost() { return 4; }
+
+		@Override
+		public void reactToCard(ServerTurn turn) {
+			int numVictory = 0;
+			Card firstVictory = null;
+			for(Card c : turn.inHand)
+				if(c instanceof VictoryCard) {
+					if(numVictory == 0) firstVictory = c;
+					numVictory++;
+				}
+			if(numVictory == 0) turn.revealHand();
+			else if(numVictory == 1) turn.putOnDeckFromHand(firstVictory);
+			else {
+				turn.requestDecision(this);
+				//this is a bit weird, setting something inProgress for non-current player
+				turn.setInProgress(this);
+				return;
+			}
+			turn.doneReacting();
+		}
+
+		@Override public void playCard(Turn turn) { 
+			if(turn instanceof ServerTurn) {
+				((ServerTurn) turn).putCardOnTopOfDeck(Card.treasureCards[1]);
+				((ServerTurn) turn).setInProgress(this);
+			}
+			//reaction code takes care of the rest
+		}
+
+		//this will be called on the gui of any opponent with multiple victory cards
+		@Override public void createAndSendDecisionObject(DominionGUI gui) {
+			gui.setupCardSelection(1, true, SelectionType.undraw, this);
+		}
+
+		@Override
+		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision) { 
+			// server will send message to remove
+		}
+
+		@Override
+		public void startProcessing(ServerTurn turn) { /* nothing to do */	}
+
+		@Override
+		public void continueProcessing(ServerTurn turn, Decision decision) { 
+			// see if everyone else is done
+			if(turn.playerNum() == turn.currentPlayer()) {
+				System.out.println("continued on curr player");
+				if(turn.isDoneReacting())
+					turn.doneProcessing();
+				return;
+			}
+			// there'd better be exactly 1, reprompt if not
+			if(((CardListDecision)decision).list.size() != 1) turn.requestDecision(this);
+			else {
+				turn.putOnDeckFromHand(((CardListDecision)decision).list.get(0));
+				turn.doneProcessingOutOfTurn();
+			}
+		}
+
+	}
+
 	public class Moneylender extends DefaultCard implements ActionCard {
 		private static final long serialVersionUID = 1L;
 		@Override public int getCost() { return 4; }
@@ -320,6 +389,7 @@ public interface Card extends Serializable, Comparable<Card> {
 			}
 		}
 	}
+
 	public class SeaHag extends DefaultCard implements AttackCard {
 		private static final long serialVersionUID = 1L;
 		@Override public int getCost() { return 4; }
@@ -339,9 +409,7 @@ public interface Card extends Serializable, Comparable<Card> {
 
 		@Override
 		public void playCard(Turn turn) {
-			if(turn instanceof ServerTurn) {
-				((ServerTurn) turn).setInProgress(this);
-			}
+			if(turn instanceof ServerTurn) { ((ServerTurn) turn).setInProgress(this); }
 			//now wait for the reaction
 		}
 

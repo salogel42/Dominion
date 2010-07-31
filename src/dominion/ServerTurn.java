@@ -13,12 +13,14 @@ import dominion.card.ComplexDecisionCard;
 import dominion.card.Decision;
 import dominion.card.Decision.CardListDecision;
 import dominion.card.Decision.GainDecision;
+import dominion.card.InteractingCard;
 import dominion.card.TreasureCard;
 
 public class ServerTurn extends Turn {
 	private PlayerInfo player;
 	private boolean bpComputed = false;
 
+	private boolean[] reacted;
 	public ComplexDecisionCard inProgress = null;
 	
 	public ServerTurn(PlayerInfo p) {
@@ -82,12 +84,22 @@ public class ServerTurn extends Turn {
 
 	public void setInProgress(ComplexDecisionCard c) {
 		inProgress = c;
+		if(c instanceof InteractingCard && player.playerNum == player.currentPlayer()) {
+			//these should all be false to begin with
+			this.reacted = new boolean[player.numPlayers()];
+			//except me
+			reacted[player.playerNum] = true;
+		}
 		c.startProcessing(this);
 	}
 
 	public void doneProcessing() {
 		inProgress = null;
 		continueTurn();
+	}
+	public void doneProcessingOutOfTurn() {
+		player.doneReacting();
+		inProgress = null;
 	}
 
 	@Override
@@ -245,11 +257,31 @@ public class ServerTurn extends Turn {
 		player.discardCard(c);
 	}
 
-	public void putCardOnTopOfDeck(Card c) { player.putCardOnTopOfDeck(c); }
+	public void putOnDeckFromHand(Card c) { 
+		if(inHand.remove(c)) {
+			player.putCardOnTopOfDeck(c, true); 
+		}
+	}
+
+	public void putCardOnTopOfDeck(Card c) { player.putCardOnTopOfDeck(c, false); }
 	public void discardCard(Card c) { player.discardCard(c); }
 
 	public ServerTurn currentTurn() { return player.currentTurn(); }
 	public int currentPlayer() { return player.currentPlayer(); }
 	public int numPlayers() { return player.numPlayers(); }
 	public int playerNum() { return player.playerNum; }
+	public void doneReacting() { 
+		player.doneReacting();
+	}
+	public void playerIsDoneReacting(int playerNum) {
+		reacted[playerNum] = true;
+		if(isDoneReacting()) {
+			doneProcessing();
+			continueTurn();
+		}
+	}
+	public boolean isDoneReacting() { 
+		for(boolean react : reacted) if(!react) return false;
+		return true;
+	}
 }

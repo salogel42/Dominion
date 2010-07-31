@@ -47,6 +47,7 @@ import dominion.card.Decision.CardListDecision;
 import dominion.card.Decision.GainDecision;
 import dominion.card.Decision.StackDecision;
 import dominion.card.DecisionCard;
+import dominion.card.SelectionCard;
 
 @SuppressWarnings("serial")
 public class Dominion extends JFrame implements StreamListener, ActionListener, DominionGUI {
@@ -197,7 +198,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		supplyFrame.setVisible(true);
 		handFrame.setVisible(true);
 		playFrame.setVisible(true);
-		enableButtons(-1);
+		enableButtons(-1, null);
 	}
 
 	private void setupSupplyGUI() {
@@ -244,7 +245,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		}
 	}
 	
-	private void enableButtons(int upperLimit)
+	private void enableButtons(int upperLimit, SelectionCard selectable)
 	{
 		boolean tab = false;
 		boolean han = false;
@@ -284,7 +285,8 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		int i = 0;
 		for(Card c : playerModels[localPlayer].turn.inHand) {
 			//TODO may need to add upperLimit to trash?
-			handPane.getComponent(i).setEnabled((han && c instanceof ActionCard) || select);
+			handPane.getComponent(i).setEnabled((han && c instanceof ActionCard) || 
+					((selectable != null) ? selectable.isSelectable(c) : select));
 			i++;
 		}
 		supplyFrame.pack();
@@ -349,13 +351,13 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 				}
 				mess = mess.substring(0, mess.length()-2);
 				message.setText("Currently buying: "+mess+".  May buy " + buysLeft + " additional item(s) costing a total of " + upperLimit + ".");
-				enableButtons(upperLimit);
+				enableButtons(upperLimit, null);
 			} else if(act.equals("Clear Buys")){
 				fromSupply.clear();
 				int upperLimit = playerModels[localPlayer].turn.buyingPower;
 				int buysLeft = playerModels[localPlayer].turn.numBuysLeft;
 				message.setText("May buy " + buysLeft + " item(s) costing a total of " + upperLimit + "."); 
-				enableButtons(upperLimit);
+				enableButtons(upperLimit, null);
 			}
 			
 			break;
@@ -380,7 +382,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 				}
 				mess = mess.substring(0, mess.length()-2);
 				message.setText("Currently selecting: "+mess+".");
-				enableButtons(-1);
+				enableButtons(-1, null);
 			} else if(act.equals("Clear Selection")){
 				fromHand.clear();
 				message.setText("Select some cards."); 
@@ -422,7 +424,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		{
 			message.setText("It is " + names[player] + "'s turn.");
 			state =  GameState.none;
-			enableButtons(-1);
+			enableButtons(-1, null);
 		}
 	}
 
@@ -445,6 +447,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		int i = playerModels[playerNum].turn.inHand.indexOf(c);
 		handPane.remove(i);
 		playerModels[playerNum].turn.inHand.remove(i);
+		handFrame.pack();
 		
 	}
 	@Override
@@ -743,7 +746,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 	}
 
 	@Override
-	public void setupCardSelection(int upperLimit, boolean exact, SelectionType type) {
+	public void setupCardSelection(int upperLimit, boolean exact, SelectionType type, SelectionCard c) {
 		String amount = (upperLimit == -1) ? "any number of cards":
 			(((exact) ? "exactly " : "at most ") + upperLimit + " card(s)");
 		message.setText("Choose " + amount + " to " + type + " from your hand.");
@@ -753,7 +756,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		//will be requested if an invalid one is sent.
 		state = GameState.waitingForSelectFromHand;
 		
-		enableButtons(-1);
+		enableButtons(-1, c);
 
 	}
 	
@@ -792,6 +795,13 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 			messagePane.setText(messageText);
 			//TODO visual display
 			break;
+		case putOnDeckFromHand:
+			messageText += names[m.playerNum] + " put card on deck from hand: " + getImageLinkForCard(m.card) +  ".\n";
+			messagePane.setText(messageText);
+			//TODO maybe wrong method name?
+			if(m.playerNum == localPlayer) discardCard(m.playerNum, m.card);
+			//TODO visual display
+			break;
 		case gainCard:
 			messageText += names[m.playerNum] + " gained: " + getImageLinkForCard(m.card) + "\n";
 			messagePane.setText(messageText);
@@ -824,7 +834,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 			if(m.playerNum == localPlayer){
 				message.setText("Choose an action from your hand (" + playerModels[localPlayer].turn.numActionsLeft + " actions left).");
 				state = GameState.waitingForAction;
-				enableButtons(0);
+				enableButtons(0, null);
 			}
 			break;
 		case chooseBuy: 
@@ -834,7 +844,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 				fromSupply.clear();
 				playerModels[localPlayer].turn.buyingPower = ((GainDecision)m.decisionObject).upperLimit;
 				playerModels[localPlayer].turn.numBuysLeft = ((GainDecision)m.decisionObject).numGains;
-				enableButtons(((GainDecision)m.decisionObject).upperLimit);
+				enableButtons(((GainDecision)m.decisionObject).upperLimit, null);
 			}
 			break;
 		case endTurn: 
