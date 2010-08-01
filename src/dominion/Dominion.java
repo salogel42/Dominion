@@ -65,7 +65,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 	private int[] scores = null;
 	private int winner;
 	
-	static enum GameState { none, waitingForAction, waitingForBuy, waitingForSelectFromHand };
+	static enum GameState { none, waitingForAction, waitingForBuy, waitingForGain, waitingForSelectFromHand };
 	GameState state = GameState.none;
 	PlayerModel[] playerModels;
 	List<CardStack> stacks;
@@ -82,7 +82,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 	JLabel trash, message;
 	JButton supply[];
 	
-	JButton nomoreAct, nomoreBuy, clearBuys, clearSelection, nomoreSelections ;
+	JButton nomoreAct, nomoreGain, clearGains, clearSelection, nomoreSelections ;
 	JPanel handPane, playPane;
 	
 	static {
@@ -152,8 +152,8 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		
 		pane = new JPanel();
 		pane.add(message = new JLabel("Message Space"));
-		pane.add(clearBuys = newButton("Clear Buys", null, '\0', true, this));
-		pane.add(nomoreBuy = newButton("Submit Buys", null, '\0', true, this));
+		pane.add(clearGains = newButton("Clear Gains", null, '\0', true, this));
+		pane.add(nomoreGain = newButton("Submit Gains", null, '\0', true, this));
 		pane.add(clearSelection = newButton("Clear Selection", null, '\0', true, this));
 		pane.add(nomoreSelections = newButton("Submit Selection", null, '\0', true, this));
 		supplyFrame.getContentPane().add(BorderLayout.NORTH, pane);
@@ -210,7 +210,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		  	supply[i].setToolTipText("<html><img src=\"" +
 		  			"file:" + IMAGE_PATH + getImageNameForCard(cs.type) + 
 		  			"\"> ");
-		  	supply[i].setActionCommand("Buy " + i);
+		  	supply[i].setActionCommand("Gain " + i);
 	  		supply[i].setEnabled(cs.numLeft > 0);
 		}
 		supplyFrame.pack();
@@ -256,7 +256,11 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 			han = true;
 			break;
 		case waitingForBuy:
+		case waitingForGain:
 			tab = true;
+			nomoreGain.setText("Submit " + getLabelForState());
+			clearGains.setText("Clear " + getLabelForState() + "s");
+			
 			break;	
 		case waitingForSelectFromHand:
 			select = true;
@@ -266,11 +270,11 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		}
 		
 		nomoreAct.setVisible(han);
-		nomoreBuy.setVisible(tab);
+		nomoreGain.setVisible(tab);
 		clearSelection.setVisible(select);
 		nomoreSelections.setVisible(select); 
 		//TODO set disabled if too many, too few are selected
-		clearBuys.setVisible(tab && !fromSupply.isEmpty());
+		clearGains.setVisible(tab && !fromSupply.isEmpty());
 		if(!tab || upperLimit == -1 || playerModels[localPlayer].turn.numBuysLeft <= fromSupply.size()) {
 			for(int i = 0; i < supply.length; i++) {
 				supply[i].setEnabled(false);
@@ -311,12 +315,26 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 			this.setHorizontalTextPosition(SwingConstants.CENTER);
 		}
 	}
-	
+	private RemoteMessage.Action getActionForState() {
+		switch(state) {
+			case waitingForBuy: return Action.buyCard; 
+			case waitingForGain: return Action.sendDecision;
+			default: return null;
+		}
+	}
+
+	private String getLabelForState() {
+		switch(state) {
+			case waitingForBuy: return "Buy"; 
+			case waitingForGain: return "Gain";
+			default: return null;
+		}
+	}
+
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		String act = e.getActionCommand();
 		RemoteMessage rm;
-
 		
 		switch(state){
 		case waitingForAction: 
@@ -330,29 +348,32 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 			state = GameState.none;
 			message.setText("");
 			break;
-		case waitingForBuy:
-			if(act.equals("Submit Buys"))
+		case waitingForBuy: case waitingForGain:
+			if(act.equals("Submit " + getLabelForState()))
 			{
 				Decision dec = new Decision.CardListDecision(new ArrayList<Card>(fromSupply));
-				rm = new RemoteMessage(Action.buyCard, localPlayer, null, dec);
+				rm = new RemoteMessage(getActionForState(), localPlayer, null, dec);
 				streams.sendMessage(rm);
 				state = GameState.none;
 				message.setText("");
 				fromSupply.clear();
-			} else if(act.startsWith("Buy ")) {
+			} else if(act.startsWith("Gain ")) { 
 				int upperLimit = playerModels[localPlayer].turn.buyingPower;
 				int buysLeft = playerModels[localPlayer].turn.numBuysLeft;
 				String mess = "";
-				fromSupply.add(stacks.get(Integer.parseInt(act.substring(4))).type);
+				fromSupply.add(stacks.get(Integer.parseInt(act.substring(5))).type);
 				for(Card c : fromSupply) {
 					upperLimit -= c.getCost();
 					buysLeft--;
 					mess += c + ", ";
 				}
 				mess = mess.substring(0, mess.length()-2);
-				message.setText("Currently buying: "+mess+".  May buy " + buysLeft + " additional item(s) costing a total of " + upperLimit + ".");
+				if(state == GameState.waitingForBuy)
+					message.setText("Currently buying: "+mess+".  May buy " + buysLeft + " additional item(s) costing a total of " + upperLimit + ".");
+				else 
+					message.setText("Currently gaining: "+mess+".");
 				enableButtons(upperLimit, null);
-			} else if(act.equals("Clear Buys")){
+			} else if(act.equals("Clear " + getLabelForState() + "s")){
 				fromSupply.clear();
 				int upperLimit = playerModels[localPlayer].turn.buyingPower;
 				int buysLeft = playerModels[localPlayer].turn.numBuysLeft;
@@ -756,15 +777,28 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 			(((exact) ? "exactly " : "at most ") + upperLimit + " card(s)");
 		message.setText("Choose " + amount + " to " + type + " from your hand.");
 
-//		TODO enforce how many more you MUST and/or CAN trash with GUI
+//		TODO enforce how many more you MUST and/or CAN select with GUI
 		//right now, this is enforced only on the server side, and a new selection
 		//will be requested if an invalid one is sent.
 		state = GameState.waitingForSelectFromHand;
 		
 		enableButtons(-1, c);
-
 	}
 	
+	@Override
+	public void setupGainCard(int upperLimit, boolean exact, SelectionCard c) {
+		String amount = (upperLimit == -1) ? "any number of cards":
+			(((exact) ? "exactly " : "at most ") + upperLimit);
+		message.setText("Choose a card costing " + amount + " to gain.");
+		//TODO add take into hand as a bool?
+
+//		TODO enforce exact w/ GUI
+		state = GameState.waitingForGain;
+		
+		enableButtons(upperLimit, c);
+		
+	}
+
 	private String getImageLinkForCard(Card c) {
 	  	return c.toString();
 //	  	return "<html><img src=\"" +
@@ -803,9 +837,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		case putOnDeckFromHand:
 			messageText += names[m.playerNum] + " put card on deck from hand: " + getImageLinkForCard(m.card) +  ".\n";
 			messagePane.setText(messageText);
-			//TODO maybe wrong method name?
-			if(m.playerNum == localPlayer) discardCard(m.playerNum, m.card);
-			//TODO visual display
+			if(m.playerNum == localPlayer) undrawCard(m.playerNum, m.card);
 			break;
 		case gainCard:
 			messageText += names[m.playerNum] + " gained: " + getImageLinkForCard(m.card) + "\n";

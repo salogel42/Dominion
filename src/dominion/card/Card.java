@@ -16,18 +16,17 @@ public interface Card extends Serializable, Comparable<Card> {
 	public static final Card curse = new Curse();
 
 	public static final Card[] mustUse = { 
-		new Courtyard()
 	};
 
 	public static final Card[] baseRandomizerDeck = {
 		new Chapel(), new Cellar(), new Moat(), 
 		new Village(), new Woodcutter(), 
-		new Bureaucrat(), new Moneylender(), new Smithy(),
+		new Bureaucrat(), new Feast(), new Moneylender(), new Smithy(),
 		new CouncilRoom(), new Festival(), new Laboratory(), new Market(),
 		new Witch()
 	};
 	public static final Card[] intrigueRandomizerDeck = {
-		new GreatHall(), new ShantyTown(), new Conspirator(), new SeaHag(), new Tribute(), new Harem()
+		new Courtyard(), new GreatHall(), new ShantyTown(), new Conspirator(), new SeaHag(), new Tribute(), new Harem()
 	};
 	public static final Card[] seasideRandomizerDeck= {
 		new Bazaar()
@@ -55,6 +54,11 @@ public interface Card extends Serializable, Comparable<Card> {
 	@SuppressWarnings("serial")
 	public abstract static class VictorySelectionCard extends DefaultCard implements SelectionCard {
 		@Override public boolean isSelectable(Card c) { return c instanceof VictoryCard; }
+	}
+
+	@SuppressWarnings("serial")
+	public abstract static class TreasureSelectionCard extends DefaultCard implements SelectionCard {
+		@Override public boolean isSelectable(Card c) { return c instanceof TreasureCard; }
 	}
 
 	public static class Copper extends DefaultCard implements TreasureCard {
@@ -259,6 +263,47 @@ public interface Card extends Serializable, Comparable<Card> {
 
 	}
 
+	public class Feast extends DefaultCard implements ComplexDecisionCard {
+		private static final long serialVersionUID = 1L;
+		@Override public int getCost() { return 4; }
+
+		@Override
+		public void playCard(Turn turn) {
+			if(turn instanceof ServerTurn) {
+				((ServerTurn) turn).setInProgress(this);
+			}
+		}
+
+		@Override
+		public void createAndSendDecisionObject(DominionGUI gui) {
+			gui.setupGainCard(5, false, null);
+		}
+
+		@Override
+		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision) {
+			/* server handles sending gain message */
+		}
+
+		@Override
+		public void startProcessing(ServerTurn turn) {
+			turn.requestDecision(this);
+		}
+
+		@Override
+		public void continueProcessing(ServerTurn turn, Decision decision) {
+			//woo short-circuit evaluation! 
+			// if you tried to gain some number other than 1, or the one you wanted
+			// isn't in the supply, request a new one, otherwise we're done and we trash the feast
+			if(((CardListDecision)decision).list.size() != 1 || 
+					!turn.gainCard(((CardListDecision)decision).list.get(0)))
+				turn.requestDecision(this);
+			else {
+				turn.trashCardFromHand(this);
+				turn.doneProcessing();
+			}
+		}
+	}
+	
 	public class Moneylender extends DefaultCard implements ActionCard {
 		private static final long serialVersionUID = 1L;
 		@Override public int getCost() { return 4; }
@@ -269,7 +314,7 @@ public interface Card extends Serializable, Comparable<Card> {
 			//TODO should you be allowed to play Moneylender if no copper in hand?
 			//		I think it should be ok from card text, do rules check
 			if(turn.containsCard(Card.treasureCards[0])) {
-				turn.trashCard(Card.treasureCards[0]);
+				turn.trashCardFromHand(Card.treasureCards[0]);
 				turn.addBuyingPower(3);
 			}
 		}
@@ -336,6 +381,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 	}
 
+
 	public class Witch extends DefaultCard implements AttackCard {
 		private static final long serialVersionUID = 1L;
 
@@ -367,7 +413,7 @@ public interface Card extends Serializable, Comparable<Card> {
 
 		@Override
 		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision) {
-			gui.undrawCard(playerNum, ((CardListDecision)decision).list.get(0));
+			//server will send message to make it happen
 		}
 
 		@Override

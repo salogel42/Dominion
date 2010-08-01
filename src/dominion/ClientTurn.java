@@ -31,7 +31,7 @@ public class ClientTurn extends Turn {
 	}
 
 	@Override
-	public void trashCard(Card c) {
+	public void trashCardFromHand(Card c) {
 		//The GUI removes from inHand on your behalf, and does the display stuff
 		gui.trashCard(playerNum, c);		
 	}

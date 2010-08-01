@@ -7,6 +7,7 @@ import dominion.card.SelectionCard;
 public interface DominionGUI {
 	public enum SelectionType {trash, discard, undraw};
 	public void setupCardSelection(int upperLimit, boolean exact, SelectionType type, SelectionCard c);
+	public void setupGainCard(int upperLimit, boolean exact, SelectionCard c);
 	
 	public void trashCardSelection(int playerNum, CardListDecision cld);
 	public void trashCard(int playerNum, Card c);

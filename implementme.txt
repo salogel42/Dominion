@@ -1,7 +1,4 @@
 Should be fairly easy:
-5 Mine – Trash a Treasure card from your hand. Gain a Treasure card costing up to 3 more; put it into your hand.
-
-4 Feast –Trash this card. Gain a card costing up to 5 coin.
 
 4 Ironworks – Gain a card costing up to 4 . If it is an… Action card, +1 Action. Treasure card, +1 . Victory card, +1 Card.
 3 Workshop – Gain a card costing up to 4 .
@@ -33,6 +30,7 @@ Should be fairly easy:
 3 Lookout – +1 Action. Look at the top 3 cards of your deck. Trash one of them. Discard one of them. Put the other one on top of your deck.
 4 Mining Village – +1 Card, +2 Actions. You may trash this card immediately, If you do, +2 .
 2 Secret Chamber – Discard any number of cards. +1 coin for per card discarded.  Reaction: When another player plays an Attack card, you may reveal this from your hand. If you do, +2 Cards, then put 2 cards from your hand on top of your deck.
+5 Mine – Trash a Treasure card from your hand. Gain a Treasure card costing up to 3 more; put it into your hand.
 
 duration:
 3 Fishing Village – +2 Actions, +1 . At the start of your next turn: +1 Action, +1 .
@@ -110,3 +108,4 @@ Already Implemented:
 4 Sea Hag – Each other player discards the top card of his deck, then gains a Curse card, putting it on top of his deck.
 4 Bureaucrat – Gain a Silver Card: put it on top of your deck. Each other player reveals a Victory card from his hand and puts it on his deck (or reveals a hand with no Victory cards).
 2 Courtyard – +3 Cards. Put a card from your hand on top of your deck.
+4 Feast –Trash this card. Gain a card costing up to 5 coin.

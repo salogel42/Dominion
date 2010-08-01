@@ -161,7 +161,7 @@ public class ServerTurn extends Turn {
 			requestDecision(inProgress);
 			return false;
 		}
-		for(Card c : cld.list) this.trashCard(c);
+		for(Card c : cld.list) this.trashCardFromHand(c);
 		System.out.println("Got through trashing");
 		sendConfirmDecision(cld);
 		return true;
@@ -236,17 +236,20 @@ public class ServerTurn extends Turn {
 		return c;
 	}
 
+	public boolean gainCard(Card c) {
+		if(player.getCardFromSupply(c) == null) return false;
+		player.gainCard(c);
+		player.sendGain(c);
+		return true;
+	}
+	
 	public void gainCurse() {
-		if(player.getCardFromSupply(Card.curse) != null) {
-			player.gainCard(Card.curse);
-			player.sendGain(Card.curse);
-		}
-		
+		gainCard(Card.curse);
 	}
 
 	//Note: caller must verify presence of card
 	@Override
-	public void trashCard(Card c) {
+	public void trashCardFromHand(Card c) {
 		inHand.remove(c);
 		player.trashCard(c);
 	}
