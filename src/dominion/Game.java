@@ -6,21 +6,22 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import dominion.RemoteMessage.Action;
 import dominion.card.ActionCard;
-import dominion.card.AttackCard;
 import dominion.card.Card;
 import dominion.card.Decision;
 import dominion.card.Decision.CardListDecision;
+import dominion.card.Decision.GainDecision;
 import dominion.card.Decision.StackDecision;
-import dominion.card.InteractingCard;
-import dominion.card.ReactionCard;
 import dominion.card.VictoryCard;
 
-public class Game implements StreamListener {
+public class Game implements StreamListener, Runnable {
 
 	PlayerInfo[] players;
+	BlockingQueue<RemoteMessage> messageQ = new LinkedBlockingQueue<RemoteMessage>();
 	
 	public static class CardStack implements Serializable, Comparable<CardStack>{
 		private static final long serialVersionUID = -7828182798286455385L;
@@ -51,6 +52,7 @@ public class Game implements StreamListener {
 		private Stack<Card> deck = new Stack<Card>();
 		private Stack<Card> discard = new Stack<Card>();
 		ServerTurn nextTurn;
+		
 		
 		public PlayerInfo(Streams s, int playerNum) {
 			this.playerNum = playerNum;
@@ -122,6 +124,7 @@ public class Game implements StreamListener {
 			return null;
 		}
 
+		/*
 		void doInteraction(ActionCard c) {
 //			System.out.println("Server: About to check for interactivity on card " + c);
 			if(c instanceof InteractingCard) {
@@ -139,8 +142,8 @@ public class Game implements StreamListener {
 					System.out.println("Server: Player " + i + " should have reacted? " + react);
 				}
 			}
-
 		}
+		*/
 
 		public int numPlayers() { return Game.this.players.length; }
 		
@@ -200,13 +203,8 @@ public class Game implements StreamListener {
 			sendEndTurn();
 			nextTurn = new ServerTurn(this);
 			nextTurn.drawCards(5);
+			Game.this.nextPlayer();
 			//TODO: Outpost?
-			if(gameIsOver()) {
-				Game.this.tallyScores();
-			} else {
-				Game.this.nextPlayer();
-				Game.this.continueGame();
-			}
 		}
 
 		private void sendCardToHand(Card c) {
@@ -214,16 +212,6 @@ public class Game implements StreamListener {
 			System.out.println("Server: sending card to player " + rm);
 			//TODO send to everyone that you got a card
 			streams.sendMessage(rm);
-		}
-
-		private boolean gameIsOver() {
-			//Note: Provinces are in the sixth position
-			if(stacks.get(6).isEmpty()) return true;
-			int emptyStacks = 0;
-			for(CardStack cs : stacks)
-				if(cs.isEmpty())
-					emptyStacks++;
-			return (emptyStacks > 2);
 		}
 		
 		@Override
@@ -238,8 +226,57 @@ public class Game implements StreamListener {
 			if(fromHand) sendPutOnDeckFromHand(c);
 			else sendPutOnDeck(c);
 		}
+		/*
 		public void doneReacting() {
 			Game.this.players[currentPlayer()].nextTurn.playerIsDoneReacting(playerNum);
+		}*/
+		
+		public Card getPlay() {
+			streams.sendMessage(new RemoteMessage(Action.chooseAction, playerNum, null, null));
+			RemoteMessage m = null;
+			while(m == null || m.action != Action.playCard || m.playerNum != playerNum) {
+				try {
+					m = Game.this.messageQ.take();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				if(m!=null && (m.action != Action.buyCards || m.playerNum != playerNum)) 
+					System.out.println("was expecting a playCard from player "+ playerNum + ", got message: " + m);
+			}
+			return m.card;
+		}
+		
+		public List<Card> getBuys(int upperLimit, int numGains) {
+			streams.sendMessage(new RemoteMessage(Action.chooseBuy, playerNum, null, new GainDecision(upperLimit, numGains)));
+			RemoteMessage m = null;
+			while(m == null || m.action != Action.buyCards || m.playerNum != playerNum) {
+				try {
+					m = Game.this.messageQ.take();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				if(m!=null && (m.action != Action.buyCards || m.playerNum != playerNum)) 
+					System.out.println("was expecting a buyCards from player "+ playerNum + ", got message: " + m);
+			}
+			return ((CardListDecision)m.decisionObject).list;
+		}
+
+		public Decision getDecision(Card c) {
+			streams.sendMessage(new RemoteMessage(Action.makeDecision, playerNum, c, null));
+			RemoteMessage m = null;
+			while(m == null || m.action != Action.sendDecision || m.playerNum != playerNum) {
+				try {
+					m = Game.this.messageQ.take();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				if(m!=null && (m.action != Action.sendDecision || m.playerNum != playerNum)) 
+					System.out.println("was expecting a sendDecision from player "+ playerNum + ", got message: " + m);
+			}
+			return m.decisionObject;
 		}
 		
 	}
@@ -265,17 +302,20 @@ public class Game implements StreamListener {
 		sendStacks();
 
 		currPlayer = 0;
-		continueGame();
 	}
 	
 	private int currPlayer;
 	public void nextPlayer() {
 		currPlayer = (currPlayer + 1) % players.length;
 	}
-	public void continueGame() {
-		players[currPlayer].nextTurn.continueTurn();
+	public void run() {
+		while(!gameIsOver()) {
+			// Note: takeTurn advances currPlayer appropriately (or at least it should)
+			players[currPlayer].nextTurn.takeTurn();
+		}
+		tallyScores();
+		//TODO: start new game now?
 	}
-
 	
 	/* setup the supply stacks */
 	private void setupStacks() {
@@ -317,12 +357,15 @@ public class Game implements StreamListener {
 		for(PlayerInfo pi : players)
 			pi.streams.sendMessage(rm);
 	}
-	
-	private void playCard(RemoteMessage message) {
-		if(message.playerNum == currPlayer) {
-			players[currPlayer].nextTurn.playCard(message.card);
-		}//TODO: what if non-current player tries to play something?
-		
+
+	private boolean gameIsOver() {
+		//Note: Provinces are in the sixth position
+		if(stacks.get(6).isEmpty()) return true;
+		int emptyStacks = 0;
+		for(CardStack cs : stacks)
+			if(cs.isEmpty())
+				emptyStacks++;
+		return (emptyStacks > 2);
 	}
 
 	public void sendScores(ScoresObject scores) {
@@ -380,36 +423,14 @@ public class Game implements StreamListener {
 	}
 	
 	
-
 	@Override
 	public void recieveMessage(RemoteMessage message) {
 		System.out.println("Server: Got message: " + message);
-		switch(message.action) {
-		case playCard: playCard(message); break;
-		case buyCard:
-			if(message.playerNum == currPlayer) {
-				Decision.CardListDecision dec = (Decision.CardListDecision)message.decisionObject;  
-				players[currPlayer].nextTurn.buyCards(dec.list);
-			}//TODO: what if non-current player tries to buy something?
-			break;
-		case sendDecision:
-			// may need to process even if not your turn (i.e. Bureaucrat)
-			if(players[message.playerNum].nextTurn.inProgress != null)
-				players[message.playerNum].nextTurn.inProgress.continueProcessing(players[message.playerNum].nextTurn, 
-						message.decisionObject);
-			break;
-		case makeDecision:
-		case addCardToHand:
-		case chooseAction:
-		case chooseBuy:
-		case stack:
-		case endTurn:
-		case cardsWereShuffled:
-		case endScore:
-			System.out.println("Server: The action " + message.action + " should never be sent to the server!  Something is wrong.");
-			break;
-		default: 
-			System.out.println("Server: Missing a case:" + message.action + "!");
+		try {
+			messageQ.put(message);
+		} catch (InterruptedException e) {
+			// TODO mer? what should i do here?
+			e.printStackTrace();
 		}
 	}
 }

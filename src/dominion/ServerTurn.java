@@ -9,19 +9,16 @@ import dominion.Game.PlayerInfo;
 import dominion.RemoteMessage.Action;
 import dominion.card.ActionCard;
 import dominion.card.Card;
-import dominion.card.ComplexDecisionCard;
 import dominion.card.Decision;
 import dominion.card.Decision.CardListDecision;
-import dominion.card.Decision.GainDecision;
-import dominion.card.InteractingCard;
 import dominion.card.TreasureCard;
 
 public class ServerTurn extends Turn {
 	private PlayerInfo player;
 	private boolean bpComputed = false;
 
-	private boolean[] reacted;
-	public ComplexDecisionCard inProgress = null;
+	//private boolean[] reacted;
+//	public ComplexDecisionCard inProgress = null;
 	
 	public ServerTurn(PlayerInfo p) {
 		super();
@@ -30,17 +27,6 @@ public class ServerTurn extends Turn {
 
 	@Override public void drawCards(int cards) { player.drawCards(cards); }
 	
-	public void requestPlay() {
-		player.streams.sendMessage(new RemoteMessage(Action.chooseAction, player.playerNum, null, null));
-	}
-
-	public void requestDecision(Card c) {
-		player.streams.sendMessage(new RemoteMessage(Action.makeDecision, player.playerNum, c, null));
-	}
-
-	public void requestBuy(int upperLimit, int numGains) {
-		player.streams.sendMessage(new RemoteMessage(Action.chooseBuy, player.playerNum, null, new GainDecision(upperLimit, numGains)));
-	}
 	
 	//Note: it will only actually be computed once, no matter how many times it is called
 	public void computeBuyingPower()
@@ -53,34 +39,27 @@ public class ServerTurn extends Turn {
 		bpComputed = true;
 	}
 
-	public void startTurn() {
-		//TODO: when I add duration, draw cards now
-		continueTurn();
-	}
-
-	public void continueTurn() {
+	public void takeTurn() {
+		/*
 		if(inProgress != null) {
 			return;
 			//We've already sent the message requesting the decision, 
 			//so hold off on doing more stuff 'til later
-		}
-		if(numActionsLeft > 0) {
+		}*/
+		while(numActionsLeft > 0 && actionsInHand()) {
 			//prompt to choose an action or decide not to
-			if(actionsInHand()) {
-				requestPlay();
-				return;
-			}
-			numActionsLeft = 0;
+			Card play = player.getPlay();
+			playCard(play);
 		}
-		if(numBuysLeft > 0) {
+		computeBuyingPower();
+		List<Card> buys;
+		do {
 			//prompt to buy a card or choose not to
-			computeBuyingPower();
-			requestBuy(buyingPower, numBuysLeft);
-		} 
-		else {
-			player.cleanup();
-		}
+			buys = player.getBuys(buyingPower, numBuysLeft);
+		} while(!buyCards(buys));
+		player.cleanup();
 	}
+	/*
 
 	public void setInProgress(ComplexDecisionCard c) {
 		inProgress = c;
@@ -100,33 +79,32 @@ public class ServerTurn extends Turn {
 	public void doneProcessingOutOfTurn() {
 		player.doneReacting();
 		inProgress = null;
-	}
+	}*/
 
 	@Override
-	public void playCard(Card c) {
+	public boolean playCard(Card c) {
 		System.out.println("Attempting to play " + c);
 		if(c == null) {
 			numActionsLeft = 0;
-			//TODO: set a "done with actions" bool?
-		} else {
-			for(int i = 0; i < inHand.size(); i++) {
-				if(inHand.get(i) instanceof ActionCard && 
-						inHand.get(i).toString().contains(c.toString())) {
-					ActionCard ac = (ActionCard)inHand.get(i);
-					playHelper(ac);
-					player.sendPlay(ac);
-					player.doInteraction(ac);
-					break;
-				}
+			return true;
+		} 
+		for(int i = 0; i < inHand.size(); i++) {
+			if(inHand.get(i) instanceof ActionCard && 
+					inHand.get(i).toString().contains(c.toString())) {
+				ActionCard ac = (ActionCard)inHand.get(i);
+				player.sendPlay(ac);
+				playHelper(ac);
+//					player.doInteraction(ac);
+				return true;
 			}
 		}
+		return false;
 		//TODO: send a "it wasn't valid" message?
-		continueTurn();
 	}
 
 	//this message essentially confirms decision was legal, go ahead and show 
 	//changes in the display
-	private void sendConfirmDecision(Decision d) {
+	private void sendConfirmDecision(Decision d, Card inProgress) {
 		player.streams.sendMessage(new RemoteMessage(Action.sendDecision, player.playerNum, inProgress, d));
 	}
 
@@ -155,38 +133,35 @@ public class ServerTurn extends Turn {
 	}
 
 	//card must verify appropriate number
-	public boolean trashCardsFromHand(CardListDecision cld) {
+	public boolean trashCardsFromHand(CardListDecision cld, Card inProgress) {
 		System.out.println("Trashing these cards from hand " + cld.list);
 		if(!checkCardListInHand(cld)) {
-			requestDecision(inProgress);
 			return false;
 		}
 		for(Card c : cld.list) this.trashCardFromHand(c);
 		System.out.println("Got through trashing");
-		sendConfirmDecision(cld);
+		sendConfirmDecision(cld, inProgress);
 		return true;
 	}
 
 	//card must verify appropriate number
-	public boolean discardCardsFromHand(CardListDecision cld) {
+	public boolean discardCardsFromHand(CardListDecision cld, Card inProgress) {
 		System.out.println("Discarding cards from hand " + cld.list);
 		if(!checkCardListInHand(cld)) {
-			requestDecision(inProgress);
 			return false;
 		}
 		for(Card c : cld.list) this.discardCardFromHand(c);
 		System.out.println("Got through discarding");
-		sendConfirmDecision(cld);
+		sendConfirmDecision(cld, inProgress);
 		return true;
 	}
 
-	public void buyCards(List<Card> list) {
+	public boolean buyCards(List<Card> list) {
 		System.out.println("Attempting to buy cards: " + list);
 		
 		if(list.size() > numBuysLeft) {
 			//TODO: else send a "it wasn't valid" message?
-			continueTurn();
-			return;
+			return false;
 		}
 			
 		CardStack cs;
@@ -208,8 +183,7 @@ public class ServerTurn extends Turn {
 			}
 			else {
 				//TODO: else send a "it wasn't valid" message?
-				continueTurn();
-				return;
+				return false;
 			}
 			count = 0;
 		}
@@ -221,7 +195,7 @@ public class ServerTurn extends Turn {
 		}
 		
 		numBuysLeft = 0;
-		continueTurn();
+		return true;
 	}
 	
 
@@ -254,16 +228,25 @@ public class ServerTurn extends Turn {
 		player.trashCard(c);
 	}
 
+	//Note: caller must verify presence of card
+	@Override
+	public void trashCardFromPlay(Card c) {
+		inPlay.remove(c);
+		player.trashCard(c);
+	}
+
 	@Override
 	public void discardCardFromHand(Card c) {
 		inHand.remove(c);
 		player.discardCard(c);
 	}
 
-	public void putOnDeckFromHand(Card c) { 
+	public boolean putOnDeckFromHand(Card c) { 
 		if(inHand.remove(c)) {
 			player.putCardOnTopOfDeck(c, true); 
+			return true;
 		}
+		return false;
 	}
 
 	public void putCardOnTopOfDeck(Card c) { player.putCardOnTopOfDeck(c, false); }
@@ -273,6 +256,9 @@ public class ServerTurn extends Turn {
 	public int currentPlayer() { return player.currentPlayer(); }
 	public int numPlayers() { return player.numPlayers(); }
 	public int playerNum() { return player.playerNum; }
+	
+	public Decision getDecision(Card cardToMakeDecisionFor) { return player.getDecision(cardToMakeDecisionFor); }
+	/*
 	public void doneReacting() { 
 		player.doneReacting();
 	}
@@ -287,4 +273,5 @@ public class ServerTurn extends Turn {
 		for(boolean react : reacted) if(!react) return false;
 		return true;
 	}
+	*/
 }

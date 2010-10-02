@@ -12,8 +12,8 @@ public class RemoteMessage implements Serializable {
 	private static final long serialVersionUID = 4847579924414757687L;
 	
 	public static enum Action {stack, addCardToHand, chooseAction, playCard, chooseBuy, 
-		buyCard, gainCard, endTurn, cardsWereShuffled, revealFromHand, revealFromDeck,
-		endScore, makeDecision, sendDecision, putOnDeck, putOnDeckFromHand};
+		buyCards, gainCard, endTurn, cardsWereShuffled, revealFromHand, revealFromDeck,
+		endScore, makeDecision, sendDecision, putOnDeck, putOnDeckFromHand}
 	public final Action action;
 	public final int playerNum;
 	public final Card card;

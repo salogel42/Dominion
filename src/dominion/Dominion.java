@@ -65,7 +65,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 	private int[] scores = null;
 	private int winner;
 	
-	static enum GameState { none, waitingForAction, waitingForBuy, waitingForGain, waitingForSelectFromHand };
+	static enum GameState { none, waitingForAction, waitingForBuy, waitingForGain, waitingForSelectFromHand }
 	GameState state = GameState.none;
 	PlayerModel[] playerModels;
 	List<CardStack> stacks;
@@ -92,7 +92,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 			Card.startingHand[i] = Card.victoryCards[0];
 	}
 	
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception ignored) { /* if it didn't work, it didn't work. */ }
@@ -317,7 +317,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 	}
 	private RemoteMessage.Action getActionForState() {
 		switch(state) {
-			case waitingForBuy: return Action.buyCard; 
+			case waitingForBuy: return Action.buyCards; 
 			case waitingForGain: return Action.sendDecision;
 			default: return null;
 		}
@@ -469,16 +469,28 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		handPane.remove(i);
 		playerModels[playerNum].turn.inHand.remove(i);
 		handFrame.pack();
-		
 	}
+
+	private void removeCardFromPlay(int playerNum, Card c) {
+		int i = playerModels[playerNum].turn.inPlay.indexOf(c);
+		playPane.remove(i);
+		playerModels[playerNum].turn.inPlay.remove(i);
+		playFrame.pack();
+	}
+
 	@Override
 	public void discardCard(int playerNum, Card c) {
 		removeCardFromHand(playerNum, c);
 	}
 
 	@Override
-	public void trashCard(int playerNum, Card c) {
+	public void trashCardFromHand(int playerNum, Card c) {
 		removeCardFromHand(playerNum, c);
+		// TODO add to trash pile!
+	}
+	@Override
+	public void trashCardFromPlay(int playerNum, Card c) {
+		removeCardFromPlay(playerNum, c);
 		// TODO add to trash pile!
 	}
 	@Override
@@ -487,12 +499,13 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		//TODO add 1 to # in deck
 	}
 	
+	// Assumed to be trashing from hand
 	@Override
 	public void trashCardSelection(int playerNum, CardListDecision cld) {
 		for(Card c : cld.list) {
 			System.out.println("Player " + playerNum + " trashed " + c);
 			if(playerNum == localPlayer) {
-				trashCard(localPlayer, c);
+				trashCardFromHand(localPlayer, c);
 			}
 			//TODO: add to trash
 		}
@@ -722,7 +735,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 					}
 
 					//while(true) {
-						new Game(players);
+						new Thread(new Game(players)).start();
 						//TODO: prompt play again?
 						//TODO: allow to go back and change players?
 						//i.e. conditionally call setupPlayerConnections();
@@ -915,7 +928,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 				((DecisionCard)m.card).carryOutDecision(this, localPlayer, m.decisionObject);
 			}
 			break;
-		case buyCard:
+		case buyCards:
 			System.out.println("The action " + m.action + " should never be sent to the client!  Something is wrong.");
 			break;
 		default: 

@@ -56,9 +56,10 @@ public abstract class Turn {
 
 	//Things that work differently for Client and Server but are needed by both
 	public abstract void drawCards(int cards);
-	public abstract void playCard(Card c);
+	public abstract boolean playCard(Card c);
 	public abstract void revealHand();
 	public abstract void trashCardFromHand(Card c);
 	public abstract void discardCardFromHand(Card c);
+	public abstract void trashCardFromPlay(Card c);
 
 }

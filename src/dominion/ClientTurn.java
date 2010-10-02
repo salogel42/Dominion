@@ -24,20 +24,25 @@ public class ClientTurn extends Turn {
 	}
 	
 	@Override
-	public void playCard(Card c) {
+	public boolean playCard(Card c) {
 		//TODO maybe check that it is there and an ActionCard before calling?
 		//Server should've already checked, but could've been an issue sending
 		this.playHelper((ActionCard) c);
+		return true;
 	}
 
 	@Override
 	public void trashCardFromHand(Card c) {
 		//The GUI removes from inHand on your behalf, and does the display stuff
-		gui.trashCard(playerNum, c);		
+		gui.trashCardFromHand(playerNum, c);		
 	}
 	@Override
 	public void discardCardFromHand(Card c) {
 		gui.discardCard(playerNum, c);		
+	}
+	@Override
+	public void trashCardFromPlay(Card c) {
+		gui.trashCardFromPlay(playerNum, c);		
 	}
 
 }

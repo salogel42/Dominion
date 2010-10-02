@@ -1,8 +1,6 @@
 package dominion.card;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 import dominion.DominionGUI;
 import dominion.DominionGUI.SelectionType;
@@ -19,14 +17,19 @@ public interface Card extends Serializable, Comparable<Card> {
 	};
 
 	public static final Card[] baseRandomizerDeck = {
-		new Chapel(), new Cellar(), new Moat(), 
+		new Chapel(), new Cellar(),
+		new Moat(), 
 		new Village(), new Woodcutter(), 
-		new Bureaucrat(), new Feast(), new Moneylender(), new Smithy(),
+		//new Bureaucrat, 
+		new Feast(), 
+		new Moneylender(), new Smithy(),
 		new CouncilRoom(), new Festival(), new Laboratory(), new Market(),
-		new Witch()
+		//new Witch()
 	};
 	public static final Card[] intrigueRandomizerDeck = {
-		new Courtyard(), new GreatHall(), new ShantyTown(), new Conspirator(), new SeaHag(), new Tribute(), new Harem()
+		new Courtyard(), 
+		new GreatHall(), new ShantyTown(), new Conspirator(), //new SeaHag(), //new Tribute(), 
+		new Harem()
 	};
 	public static final Card[] seasideRandomizerDeck= {
 		new Bazaar()
@@ -104,31 +107,25 @@ public interface Card extends Serializable, Comparable<Card> {
 	//Base set 
 	
 	//twos
-	public class Chapel extends DefaultCard implements ComplexDecisionCard {
+	public class Chapel extends DefaultCard implements DecisionCard {
 		private static final long serialVersionUID = 1L;
 		@Override public void playCard(Turn turn) { 
 			if(turn instanceof ServerTurn) {
-				((ServerTurn) turn).setInProgress(this);
+				CardListDecision decision;
+				do {
+					//request decision
+					decision = (CardListDecision) ((ServerTurn)turn).getDecision(this);
+					//try using this decision, if it doesn't work, ask again
+				} while(decision.list.size() > 4 || !((ServerTurn)turn).trashCardsFromHand(decision, this));
 			}
 			//on the client side, just wait for the decision request
 		}
 		@Override public int getCost() { return 2; }
-		@Override
-		public void startProcessing(ServerTurn turn) {
-				turn.requestDecision(this);
-		}
+
 		@Override
 		public void createAndSendDecisionObject(DominionGUI gui) {
 			//sets the GUI in motion
 			gui.setupCardSelection(4, false, SelectionType.trash, null);
-		}
-		@Override
-		public void continueProcessing(ServerTurn turn, Decision decision) {
-			System.out.println("processing chapel");
-			if(((CardListDecision)decision).list.size() <= 4) {
-				if(turn.trashCardsFromHand((CardListDecision)decision))
-					turn.doneProcessing();
-			}
 		}
 		@Override
 		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision) {
@@ -136,34 +133,29 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 	}	
 
-	public class Cellar extends DefaultCard implements ComplexDecisionCard {
+	public class Cellar extends DefaultCard implements DecisionCard {
 		private static final long serialVersionUID = 1L;
 		@Override public void playCard(Turn turn) { 
 			turn.addActions(1);
 			if(turn instanceof ServerTurn) {
-				((ServerTurn) turn).setInProgress(this);
+				ServerTurn st = (ServerTurn)turn;
+				CardListDecision decision;
+				// request cards to discard and attempt to discard them til you get a list that's valid
+				while(!st.discardCardsFromHand(decision = (CardListDecision) st.getDecision(this), this));
+				// now draw as many cards as you discarded
+				st.drawCards(decision.list.size());
 			}
-			//on the client side, just wait for the decision request
+			// on the client side, just wait for the decision request
 		}
 		@Override public int getCost() { return 2; }
-		@Override public void startProcessing(ServerTurn turn) { turn.requestDecision(this); }
 		@Override
 		public void createAndSendDecisionObject(DominionGUI gui) {
-			//sets the GUI in motion
+			// sets the GUI in motion
 			gui.setupCardSelection(-1, false, SelectionType.discard, null);
 		}
 		@Override
-		public void continueProcessing(ServerTurn turn, Decision decision) {
-			System.out.println("processing Cellar");
-			CardListDecision cld = (CardListDecision)decision;
-			int numCards = cld.list.size();
-			if(turn.discardCardsFromHand(cld)) {
-				turn.drawCards(numCards);
-				turn.doneProcessing();
-			}
-		}
-		@Override
 		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision) {
+			// TODO: should this be discard, not trash? look into this.
 			gui.trashCardSelection(playerNum, (CardListDecision)decision);
 		}
 	}	
@@ -199,6 +191,7 @@ public interface Card extends Serializable, Comparable<Card> {
 	}
 
 	//fours
+	/*
 	public class Bureaucrat extends VictorySelectionCard implements AttackCard, ComplexDecisionCard {
 		private static final long serialVersionUID = 1L;
 		@Override public int getCost() { return 4; }
@@ -242,7 +235,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 
 		@Override
-		public void startProcessing(ServerTurn turn) { /* nothing to do */	}
+		public void startProcessing(ServerTurn turn) { /* nothing to do 	}
 
 		@Override
 		public void continueProcessing(ServerTurn turn, Decision decision) { 
@@ -262,15 +255,24 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 
 	}
+*/	
 
-	public class Feast extends DefaultCard implements ComplexDecisionCard {
+	public class Feast extends DefaultCard implements DecisionCard {
 		private static final long serialVersionUID = 1L;
 		@Override public int getCost() { return 4; }
 
 		@Override
 		public void playCard(Turn turn) {
 			if(turn instanceof ServerTurn) {
-				((ServerTurn) turn).setInProgress(this);
+				ServerTurn st = (ServerTurn)turn;
+				CardListDecision decision;
+				do {
+					decision = (CardListDecision) st.getDecision(this);
+					// if you tried to gain some number other than 1, it costs more than 5, or the one you wanted 
+					// isn't in the supply, request a new one, otherwise we're done and we trash the feast
+				} while(decision.list.size() != 1 || decision.list.get(0).getCost() > 5 
+						|| !st.gainCard(decision.list.get(0)));
+				st.trashCardFromPlay(this);
 			}
 		}
 
@@ -283,27 +285,8 @@ public interface Card extends Serializable, Comparable<Card> {
 		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision) {
 			/* server handles sending gain message */
 		}
-
-		@Override
-		public void startProcessing(ServerTurn turn) {
-			turn.requestDecision(this);
-		}
-
-		@Override
-		public void continueProcessing(ServerTurn turn, Decision decision) {
-			//woo short-circuit evaluation! 
-			// if you tried to gain some number other than 1, or the one you wanted
-			// isn't in the supply, request a new one, otherwise we're done and we trash the feast
-			if(((CardListDecision)decision).list.size() != 1 || 
-					!turn.gainCard(((CardListDecision)decision).list.get(0)))
-				turn.requestDecision(this);
-			else {
-				turn.trashCardFromHand(this);
-				turn.doneProcessing();
-			}
-		}
 	}
-	
+
 	public class Moneylender extends DefaultCard implements ActionCard {
 		private static final long serialVersionUID = 1L;
 		@Override public int getCost() { return 4; }
@@ -395,14 +378,22 @@ public interface Card extends Serializable, Comparable<Card> {
 	}
 
 	//Intrigue
-	public class Courtyard extends DefaultCard implements ComplexDecisionCard {
+	public class Courtyard extends DefaultCard implements DecisionCard {
 		private static final long serialVersionUID = 1L;
 		@Override public int getCost() { return 2; }
 
 		@Override
 		public void playCard(Turn turn) {
 			turn.drawCards(3);
-			if(turn instanceof ServerTurn) { ((ServerTurn) turn).setInProgress(this); }
+			if(turn instanceof ServerTurn) {  
+				ServerTurn st = (ServerTurn)turn;
+				CardListDecision decision;
+				do {
+					decision = (CardListDecision) st.getDecision(this);
+					// if you tried to put back some number other than 1, or it's not in your hand
+					// request a new one, otherwise we're done 
+				} while(decision.list.size() != 1 || !st.putOnDeckFromHand(decision.list.get(0)));
+			}
 			//wait for processing code to ask for discard
 		}
 
@@ -416,20 +407,6 @@ public interface Card extends Serializable, Comparable<Card> {
 			//server will send message to make it happen
 		}
 
-		@Override
-		public void startProcessing(ServerTurn turn) {
-			turn.requestDecision(this);
-		}
-
-		@Override
-		public void continueProcessing(ServerTurn turn, Decision decision) {
-			// if not exactly 1 card, try again
-			if(((CardListDecision)decision).list.size() != 1) turn.requestDecision(this);
-			else {
-				turn.putOnDeckFromHand(((CardListDecision)decision).list.get(0));
-				turn.doneProcessing();
-			}
-		}
 	}
 
 	public class GreatHall extends DefaultCard implements ActionCard, VictoryCard {
@@ -485,7 +462,7 @@ public interface Card extends Serializable, Comparable<Card> {
 
 		@Override public void playCard(Turn turn) { /* it's all in the reaction */ }
 	}
-
+/*
 	public class Tribute extends DefaultCard implements InteractingCard, ComplexDecisionCard {
 		private static final long serialVersionUID = 1L;
 		@Override public int getCost() { return 5; }
@@ -521,7 +498,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 
 		@Override
-		public void startProcessing(ServerTurn turn) { /* reaction method handles getting the "decision" */ }
+		public void startProcessing(ServerTurn turn) { /* reaction method handles getting the "decision" }
 
 		@Override
 		public void continueProcessing(ServerTurn turn, Decision decision) {
@@ -543,7 +520,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 
 	}
-
+*/
 	public class Harem extends DefaultCard implements VictoryCard, TreasureCard {
 		private static final long serialVersionUID = 1L;
 		@Override public int getCost() { return 6; }
