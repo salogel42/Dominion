@@ -17,9 +17,6 @@ public class ServerTurn extends Turn {
 	private PlayerInfo player;
 	private boolean bpComputed = false;
 
-	//private boolean[] reacted;
-//	public ComplexDecisionCard inProgress = null;
-	
 	public ServerTurn(PlayerInfo p) {
 		super();
 		player = p;
@@ -40,12 +37,6 @@ public class ServerTurn extends Turn {
 	}
 
 	public void takeTurn() {
-		/*
-		if(inProgress != null) {
-			return;
-			//We've already sent the message requesting the decision, 
-			//so hold off on doing more stuff 'til later
-		}*/
 		while(numActionsLeft > 0 && actionsInHand()) {
 			//prompt to choose an action or decide not to
 			Card play = player.getPlay();
@@ -59,27 +50,6 @@ public class ServerTurn extends Turn {
 		} while(!buyCards(buys));
 		player.cleanup();
 	}
-	/*
-
-	public void setInProgress(ComplexDecisionCard c) {
-		inProgress = c;
-		if(c instanceof InteractingCard && player.playerNum == player.currentPlayer()) {
-			//these should all be false to begin with
-			this.reacted = new boolean[player.numPlayers()];
-			//except me
-			reacted[player.playerNum] = true;
-		}
-		c.startProcessing(this);
-	}
-
-	public void doneProcessing() {
-		inProgress = null;
-		continueTurn();
-	}
-	public void doneProcessingOutOfTurn() {
-		player.doneReacting();
-		inProgress = null;
-	}*/
 
 	@Override
 	public boolean playCard(Card c) {
@@ -94,7 +64,7 @@ public class ServerTurn extends Turn {
 				ActionCard ac = (ActionCard)inHand.get(i);
 				player.sendPlay(ac);
 				playHelper(ac);
-//					player.doInteraction(ac);
+				player.doInteraction(ac);
 				return true;
 			}
 		}
@@ -258,20 +228,4 @@ public class ServerTurn extends Turn {
 	public int playerNum() { return player.playerNum; }
 	
 	public Decision getDecision(Card cardToMakeDecisionFor) { return player.getDecision(cardToMakeDecisionFor); }
-	/*
-	public void doneReacting() { 
-		player.doneReacting();
-	}
-	public void playerIsDoneReacting(int playerNum) {
-		reacted[playerNum] = true;
-		if(isDoneReacting()) {
-			doneProcessing();
-			continueTurn();
-		}
-	}
-	public boolean isDoneReacting() { 
-		for(boolean react : reacted) if(!react) return false;
-		return true;
-	}
-	*/
 }

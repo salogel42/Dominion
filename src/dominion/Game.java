@@ -11,11 +11,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import dominion.RemoteMessage.Action;
 import dominion.card.ActionCard;
+import dominion.card.AttackCard;
 import dominion.card.Card;
 import dominion.card.Decision;
 import dominion.card.Decision.CardListDecision;
 import dominion.card.Decision.GainDecision;
 import dominion.card.Decision.StackDecision;
+import dominion.card.InteractingCard;
+import dominion.card.ReactionCard;
 import dominion.card.VictoryCard;
 
 public class Game implements StreamListener, Runnable {
@@ -124,7 +127,6 @@ public class Game implements StreamListener, Runnable {
 			return null;
 		}
 
-		/*
 		void doInteraction(ActionCard c) {
 //			System.out.println("Server: About to check for interactivity on card " + c);
 			if(c instanceof InteractingCard) {
@@ -138,12 +140,10 @@ public class Game implements StreamListener, Runnable {
 								react = ((ReactionCard)rc).reaction(players[i].nextTurn);
 					}
 					if(react) ic.reactToCard(players[i].nextTurn);
-					else players[currentPlayer()].nextTurn.playerIsDoneReacting(i);
 					System.out.println("Server: Player " + i + " should have reacted? " + react);
 				}
 			}
 		}
-		*/
 
 		public int numPlayers() { return Game.this.players.length; }
 		
@@ -226,10 +226,6 @@ public class Game implements StreamListener, Runnable {
 			if(fromHand) sendPutOnDeckFromHand(c);
 			else sendPutOnDeck(c);
 		}
-		/*
-		public void doneReacting() {
-			Game.this.players[currentPlayer()].nextTurn.playerIsDoneReacting(playerNum);
-		}*/
 		
 		public Card getPlay() {
 			streams.sendMessage(new RemoteMessage(Action.chooseAction, playerNum, null, null));

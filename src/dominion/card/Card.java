@@ -20,15 +20,14 @@ public interface Card extends Serializable, Comparable<Card> {
 		new Chapel(), new Cellar(),
 		new Moat(), 
 		new Village(), new Woodcutter(), 
-		//new Bureaucrat, 
-		new Feast(), 
+		new Bureaucrat(), new Feast(), 
 		new Moneylender(), new Smithy(),
 		new CouncilRoom(), new Festival(), new Laboratory(), new Market(),
-		//new Witch()
+		new Witch()
 	};
 	public static final Card[] intrigueRandomizerDeck = {
 		new Courtyard(), 
-		new GreatHall(), new ShantyTown(), new Conspirator(), //new SeaHag(), //new Tribute(), 
+		new GreatHall(), new ShantyTown(), new Conspirator(), new SeaHag(), //new Tribute(), 
 		new Harem()
 	};
 	public static final Card[] seasideRandomizerDeck= {
@@ -191,13 +190,13 @@ public interface Card extends Serializable, Comparable<Card> {
 	}
 
 	//fours
-	/*
-	public class Bureaucrat extends VictorySelectionCard implements AttackCard, ComplexDecisionCard {
+	public class Bureaucrat extends VictorySelectionCard implements AttackCard, DecisionCard {
 		private static final long serialVersionUID = 1L;
 		@Override public int getCost() { return 4; }
 
 		@Override
 		public void reactToCard(ServerTurn turn) {
+			// The turn here is the turn of the reacting player, not the one who played the card
 			int numVictory = 0;
 			Card firstVictory = null;
 			for(Card c : turn.inHand)
@@ -208,18 +207,18 @@ public interface Card extends Serializable, Comparable<Card> {
 			if(numVictory == 0) turn.revealHand();
 			else if(numVictory == 1) turn.putOnDeckFromHand(firstVictory);
 			else {
-				turn.requestDecision(this);
-				//this is a bit weird, setting something inProgress for non-current player
-				turn.setInProgress(this);
-				return;
+				CardListDecision decision;
+				// there'd better be exactly 1, keep prompting till it is, also must be a victory card
+				while(((decision = (CardListDecision)turn.getDecision(this))).list.size() != 1 &&
+						!(decision instanceof VictoryCard));
+				turn.putOnDeckFromHand(((CardListDecision)decision).list.get(0));
 			}
-			turn.doneReacting();
 		}
 
 		@Override public void playCard(Turn turn) { 
 			if(turn instanceof ServerTurn) {
+				// Card.treasureCards[1] is the single instance of Card.Silver
 				((ServerTurn) turn).putCardOnTopOfDeck(Card.treasureCards[1]);
-				((ServerTurn) turn).setInProgress(this);
 			}
 			//reaction code takes care of the rest
 		}
@@ -233,29 +232,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision) { 
 			// server will send message to remove
 		}
-
-		@Override
-		public void startProcessing(ServerTurn turn) { /* nothing to do 	}
-
-		@Override
-		public void continueProcessing(ServerTurn turn, Decision decision) { 
-			// see if everyone else is done
-			if(turn.playerNum() == turn.currentPlayer()) {
-				System.out.println("continued on curr player");
-				if(turn.isDoneReacting())
-					turn.doneProcessing();
-				return;
-			}
-			// there'd better be exactly 1, reprompt if not
-			if(((CardListDecision)decision).list.size() != 1) turn.requestDecision(this);
-			else {
-				turn.putOnDeckFromHand(((CardListDecision)decision).list.get(0));
-				turn.doneProcessingOutOfTurn();
-			}
-		}
-
 	}
-*/	
 
 	public class Feast extends DefaultCard implements DecisionCard {
 		private static final long serialVersionUID = 1L;
