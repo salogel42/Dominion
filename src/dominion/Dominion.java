@@ -925,7 +925,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 			break;
 		case sendDecision: //On this side, this means that decision was accepted
 			if(m.playerNum == localPlayer){
-				((DecisionCard)m.card).carryOutDecision(this, localPlayer, m.decisionObject);
+				((DecisionCard)m.card).carryOutDecision(this, localPlayer, m.decisionObject, playerModels[localPlayer].turn);
 			}
 			break;
 		case buyCards:

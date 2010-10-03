@@ -228,4 +228,9 @@ public class ServerTurn extends Turn {
 	public int playerNum() { return player.playerNum; }
 	
 	public Decision getDecision(Card cardToMakeDecisionFor) { return player.getDecision(cardToMakeDecisionFor); }
+
+	public void sendDecisionToPlayer(Card c, Decision d) {
+		player.streams.sendMessage(new RemoteMessage(Action.sendDecision, player.playerNum, c, d));
+	}
+
 }

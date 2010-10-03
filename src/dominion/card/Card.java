@@ -1,7 +1,10 @@
 package dominion.card;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
+import dominion.ClientTurn;
 import dominion.DominionGUI;
 import dominion.DominionGUI.SelectionType;
 import dominion.ServerTurn;
@@ -27,7 +30,7 @@ public interface Card extends Serializable, Comparable<Card> {
 	};
 	public static final Card[] intrigueRandomizerDeck = {
 		new Courtyard(), 
-		new GreatHall(), new ShantyTown(), new Conspirator(), new SeaHag(), //new Tribute(), 
+		new GreatHall(), new ShantyTown(), new Conspirator(), new SeaHag(), new Tribute(), 
 		new Harem()
 	};
 	public static final Card[] seasideRandomizerDeck= {
@@ -127,7 +130,7 @@ public interface Card extends Serializable, Comparable<Card> {
 			gui.setupCardSelection(4, false, SelectionType.trash, null);
 		}
 		@Override
-		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision) {
+		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision, ClientTurn turn) {
 			gui.trashCardSelection(playerNum, (CardListDecision)decision);
 		}
 	}	
@@ -153,7 +156,7 @@ public interface Card extends Serializable, Comparable<Card> {
 			gui.setupCardSelection(-1, false, SelectionType.discard, null);
 		}
 		@Override
-		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision) {
+		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision, ClientTurn turn) {
 			// TODO: should this be discard, not trash? look into this.
 			gui.trashCardSelection(playerNum, (CardListDecision)decision);
 		}
@@ -229,7 +232,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 
 		@Override
-		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision) { 
+		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision, ClientTurn turn) { 
 			// server will send message to remove
 		}
 	}
@@ -259,7 +262,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 
 		@Override
-		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision) {
+		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision, ClientTurn turn) {
 			/* server handles sending gain message */
 		}
 	}
@@ -380,7 +383,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 
 		@Override
-		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision) {
+		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision, ClientTurn turn) {
 			//server will send message to make it happen
 		}
 
@@ -439,15 +442,14 @@ public interface Card extends Serializable, Comparable<Card> {
 
 		@Override public void playCard(Turn turn) { /* it's all in the reaction */ }
 	}
-/*
-	public class Tribute extends DefaultCard implements InteractingCard, ComplexDecisionCard {
+
+	public class Tribute extends DefaultCard implements InteractingCard, DecisionCard {
 		private static final long serialVersionUID = 1L;
 		@Override public int getCost() { return 5; }
 
 		@Override
 		public void playCard(Turn turn) {
-			if(turn instanceof ServerTurn) { ((ServerTurn) turn).setInProgress(this); }
-			//now wait for the reaction
+			//all triggered by reaction
 		}
 
 		@Override
@@ -458,8 +460,9 @@ public interface Card extends Serializable, Comparable<Card> {
 				for(int i = 0; i < 2; i++) list.add(turn.revealTopCard());
 				for(int i = 0; i < 2; i++) turn.discardCard(list.get(i));
 				CardListDecision cld = new CardListDecision(list);
-				//just do do it directly rather than sending things back and forth
-				this.continueProcessing(turn.currentTurn(), cld);
+				//just do do it directly here, and send a decision confirmation to the current player
+				tributeHelper(turn.currentTurn(), cld);
+				turn.currentTurn().sendDecisionToPlayer(this, cld);
 			}
 			//everyone else just ignores it
 		}
@@ -470,15 +473,13 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 
 		@Override
-		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision) {
-			// everything the tribute does will be put into effect by the continueProcessing method
+		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision, ClientTurn turn) {
+			tributeHelper(turn, decision);
 		}
 
-		@Override
-		public void startProcessing(ServerTurn turn) { /* reaction method handles getting the "decision" }
-
-		@Override
-		public void continueProcessing(ServerTurn turn, Decision decision) {
+		// used by both server and client, but called into through different methods since it
+		// depends on the "decision", i.e. the cards revealed by the player to the left
+		public void tributeHelper(Turn turn, Decision decision) {
 			System.out.println("doing continueProcessing for a tribute");
 			List<Card> list = ((CardListDecision) decision).list;
 			if(list.size()!=2) return;//TODO do something smarter here?  not sure what
@@ -488,16 +489,14 @@ public interface Card extends Serializable, Comparable<Card> {
 				if(i == 1 && c.equals(list.get(0))) break;
 				//note, not else if -- if multiple it gets all of the bonuses!
 				if(c instanceof ActionCard) turn.addActions(2);
-				//TODO need to communicate the additional actions to the clientturn!
 				if(c instanceof VictoryCard) turn.drawCards(2);
 				if(c instanceof TreasureCard) turn.addBuyingPower(2);
 				//curses get nothing, as do nulls (i.e. if no cards were left in deck)
 			}
-			turn.doneProcessing();
 		}
 
 	}
-*/
+
 	public class Harem extends DefaultCard implements VictoryCard, TreasureCard {
 		private static final long serialVersionUID = 1L;
 		@Override public int getCost() { return 6; }
