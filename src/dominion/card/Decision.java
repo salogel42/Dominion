@@ -86,5 +86,15 @@ public interface Decision extends Serializable {
 		}
 	}
 
+	// used by Militia (so you know how many cards you must discard)
+	@SuppressWarnings("serial")
+	public class NumberDecision implements Decision {
+		public int num;
+		public NumberDecision(int n) { num = n; }
+		@Override
+		public String toString() {
+			return "(NumberDecision with num="+num+")";
+		}
+	}
 	
 }

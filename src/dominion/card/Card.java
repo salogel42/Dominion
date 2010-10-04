@@ -11,6 +11,7 @@ import dominion.ServerTurn;
 import dominion.Turn;
 import dominion.card.Decision.CardListDecision;
 import dominion.card.Decision.ListAndOptionsDecision;
+import dominion.card.Decision.NumberDecision;
 import dominion.card.Decision.TrashThenGainDecision;
 import dominion.card.Decision.TrashThenGainDecision.WhichDecision;
 
@@ -20,13 +21,13 @@ public interface Card extends Serializable, Comparable<Card> {
 	public static final Card curse = new Curse();
 
 	public static final Card[] mustUse = { 
-		
+		 
 	};
 
 	public static final Card[] baseRandomizerDeck = {
 		new Chapel(), new Cellar(), new Moat(), 
 		new Village(), new Woodcutter(), new Workshop(),
-		new Bureaucrat(), new Feast(),  new Moneylender(), new Remodel(), new Smithy(),
+		new Bureaucrat(), new Feast(), new Militia(), new Moneylender(), new Remodel(), new Smithy(),
 		new CouncilRoom(), new Festival(), new Laboratory(), new Market(),
 		new Mine(), new Witch()
 	};
@@ -265,8 +266,8 @@ public interface Card extends Serializable, Comparable<Card> {
 				CardListDecision decision;
 				// there'd better be exactly 1, keep prompting till it is, also must be a victory card,
 				// and in the player's hand
-				while(((decision = (CardListDecision)turn.getDecision(this, null))).list.size() != 1 &&
-						!(decision instanceof VictoryCard) && !turn.inHand.contains(decision.list.get(0)));
+				while(((decision = (CardListDecision)turn.getDecision(this, null))).list.size() != 1 ||
+						!(decision.list.get(0) instanceof VictoryCard) || !turn.inHand.contains(decision.list.get(0)));
 				turn.putOnDeckFromHand(decision.list.get(0));
 			}
 		}
@@ -317,6 +318,41 @@ public interface Card extends Serializable, Comparable<Card> {
 		@Override
 		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision, ClientTurn turn) {
 			/* server handles sending gain message */
+		}
+	}
+
+	public class Militia extends DefaultCard implements AttackCard, DecisionCard {
+		private static final long serialVersionUID = 1L;
+		@Override public int getCost() { return 4; }
+
+		@Override
+		public void reactToCard(ServerTurn turn) {
+			// The turn here is the turn of the reacting player, not the one who played the card
+			// if you're already at or below 3 cards, no effect
+			if(turn.inHand.size() <= 3) return;
+			
+			CardListDecision decision;
+			int numToDiscard = turn.inHand.size() - 3;
+			// there'd better be exactly enough to get you down to 3, and you must actually have the cards you sent in your hand
+			while(((decision = (CardListDecision)turn.getDecision(this, new NumberDecision(numToDiscard)))).list.size() 
+					!= numToDiscard 
+					|| !turn.discardCardsFromHand(decision, this));
+		}
+
+		@Override public void playCard(Turn turn) { 
+			turn.addBuyingPower(2);
+			//reaction code takes care of the rest
+		}
+
+		//this will be called on the gui of any opponent with multiple victory cards
+		@Override public void createAndSendDecisionObject(DominionGUI gui, Decision decision) {
+			gui.setupCardSelection(((NumberDecision)decision).num, true, SelectionType.discard, null);
+		}
+
+		@Override
+		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision, ClientTurn turn) { 
+			// TODO: should this be discard, not trash? look into this.
+			gui.trashCardSelection(playerNum, (CardListDecision)decision);
 		}
 	}
 
