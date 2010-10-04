@@ -1,0 +1,18 @@
+<project name="Dominion" basedir="." default="jar">
+  <target name="clean">
+    <delete dir="build" />
+  </target>
+  <target name="compile">
+    <mkdir dir="build/classes" />
+    <javac srcdir="src" destdir="build/classes" />
+  </target>
+  <target name="jar" depends="compile">
+    <jar destfile="${ant.project.name}.jar">
+      <fileset dir="build/classes" />
+      <fileset dir="." includes="images/**" />
+      <manifest>
+        <attribute name="Main-Class" value="dominion.Dominion" />
+      </manifest>
+    </jar>
+  </target>
+</project>
