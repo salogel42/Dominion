@@ -259,8 +259,11 @@ public class Game implements StreamListener, Runnable {
 			return ((CardListDecision)m.decisionObject).list;
 		}
 
-		public Decision getDecision(Card c) {
-			streams.sendMessage(new RemoteMessage(Action.makeDecision, playerNum, c, null));
+		// d will often be null, this param is to allow the card to give info as to which 
+		// decision needs to be made in the case that there are multiple decisions
+		// to be made for this card.
+		public Decision getDecision(Card c, Decision d) {
+			streams.sendMessage(new RemoteMessage(Action.makeDecision, playerNum, c, d));
 			RemoteMessage m = null;
 			while(m == null || m.action != Action.sendDecision || m.playerNum != playerNum) {
 				try {

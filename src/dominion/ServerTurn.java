@@ -180,6 +180,11 @@ public class ServerTurn extends Turn {
 		return c;
 	}
 
+	public boolean gainCardToHand(Card c) {
+		inHand.add(c);
+		return true;
+	}
+
 	public boolean gainCard(Card c) {
 		if(player.getCardFromSupply(c) == null) return false;
 		player.gainCard(c);
@@ -227,7 +232,9 @@ public class ServerTurn extends Turn {
 	public int numPlayers() { return player.numPlayers(); }
 	public int playerNum() { return player.playerNum; }
 	
-	public Decision getDecision(Card cardToMakeDecisionFor) { return player.getDecision(cardToMakeDecisionFor); }
+	public Decision getDecision(Card cardToMakeDecisionFor, Decision decision) { 
+		return player.getDecision(cardToMakeDecisionFor, decision); 
+	}
 
 	public void sendDecisionToPlayer(Card c, Decision d) {
 		player.streams.sendMessage(new RemoteMessage(Action.sendDecision, player.playerNum, c, d));

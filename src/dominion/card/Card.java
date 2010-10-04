@@ -10,6 +10,9 @@ import dominion.DominionGUI.SelectionType;
 import dominion.ServerTurn;
 import dominion.Turn;
 import dominion.card.Decision.CardListDecision;
+import dominion.card.Decision.ListAndOptionsDecision;
+import dominion.card.Decision.TrashThenGainDecision;
+import dominion.card.Decision.TrashThenGainDecision.WhichDecision;
 
 public interface Card extends Serializable, Comparable<Card> {
 	public static final TreasureCard[] treasureCards = {new Copper(), new Silver(), new Gold()};
@@ -25,7 +28,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		new Village(), new Woodcutter(), new Workshop(),
 		new Bureaucrat(), new Feast(),  new Moneylender(), new Smithy(),
 		new CouncilRoom(), new Festival(), new Laboratory(), new Market(),
-		new Witch()
+		new Mine(), new Witch()
 	};
 	public static final Card[] intrigueRandomizerDeck = {
 		new Courtyard(), new GreatHall(), new ShantyTown(), 
@@ -136,7 +139,7 @@ public interface Card extends Serializable, Comparable<Card> {
 				CardListDecision decision;
 				do {
 					//request decision
-					decision = (CardListDecision) ((ServerTurn)turn).getDecision(this);
+					decision = (CardListDecision) ((ServerTurn)turn).getDecision(this, null);
 					//try using this decision, if it doesn't work, ask again
 				} while(decision.list.size() > 4 || !((ServerTurn)turn).trashCardsFromHand(decision, this));
 			}
@@ -145,7 +148,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		@Override public int getCost() { return 2; }
 
 		@Override
-		public void createAndSendDecisionObject(DominionGUI gui) {
+		public void createAndSendDecisionObject(DominionGUI gui, Decision decision) {
 			//sets the GUI in motion
 			gui.setupCardSelection(4, false, SelectionType.trash, null);
 		}
@@ -163,7 +166,7 @@ public interface Card extends Serializable, Comparable<Card> {
 				ServerTurn st = (ServerTurn)turn;
 				CardListDecision decision;
 				// request cards to discard and attempt to discard them til you get a list that's valid
-				while(!st.discardCardsFromHand(decision = (CardListDecision) st.getDecision(this), this));
+				while(!st.discardCardsFromHand(decision = (CardListDecision) st.getDecision(this, null), this));
 				// now draw as many cards as you discarded
 				st.drawCards(decision.list.size());
 			}
@@ -171,7 +174,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 		@Override public int getCost() { return 2; }
 		@Override
-		public void createAndSendDecisionObject(DominionGUI gui) {
+		public void createAndSendDecisionObject(DominionGUI gui, Decision decision) {
 			// sets the GUI in motion
 			gui.setupCardSelection(-1, false, SelectionType.discard, null);
 		}
@@ -222,7 +225,7 @@ public interface Card extends Serializable, Comparable<Card> {
 				ServerTurn st = (ServerTurn)turn;
 				CardListDecision decision;
 				do {
-					decision = (CardListDecision) st.getDecision(this);
+					decision = (CardListDecision) st.getDecision(this, null);
 					// if you tried to gain some number other than 1, it costs more than 4, or the one you wanted 
 					// isn't in the supply, request a new one, otherwise we're done
 				} while(decision.list.size() != 1 || decision.list.get(0).getCost() > 4 
@@ -231,7 +234,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 
 		@Override
-		public void createAndSendDecisionObject(DominionGUI gui) {
+		public void createAndSendDecisionObject(DominionGUI gui, Decision decision) {
 			gui.setupGainCard(4, false, null);
 		}
 
@@ -261,7 +264,7 @@ public interface Card extends Serializable, Comparable<Card> {
 			else {
 				CardListDecision decision;
 				// there'd better be exactly 1, keep prompting till it is, also must be a victory card
-				while(((decision = (CardListDecision)turn.getDecision(this))).list.size() != 1 &&
+				while(((decision = (CardListDecision)turn.getDecision(this, null))).list.size() != 1 &&
 						!(decision instanceof VictoryCard));
 				turn.putOnDeckFromHand(((CardListDecision)decision).list.get(0));
 			}
@@ -276,7 +279,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 
 		//this will be called on the gui of any opponent with multiple victory cards
-		@Override public void createAndSendDecisionObject(DominionGUI gui) {
+		@Override public void createAndSendDecisionObject(DominionGUI gui, Decision decision) {
 			gui.setupCardSelection(1, true, SelectionType.undraw, this);
 		}
 
@@ -296,7 +299,7 @@ public interface Card extends Serializable, Comparable<Card> {
 				ServerTurn st = (ServerTurn)turn;
 				CardListDecision decision;
 				do {
-					decision = (CardListDecision) st.getDecision(this);
+					decision = (CardListDecision) st.getDecision(this, null);
 					// if you tried to gain some number other than 1, it costs more than 5, or the one you wanted 
 					// isn't in the supply, request a new one, otherwise we're done and we trash the feast
 				} while(decision.list.size() != 1 || decision.list.get(0).getCost() > 5 
@@ -306,7 +309,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 
 		@Override
-		public void createAndSendDecisionObject(DominionGUI gui) {
+		public void createAndSendDecisionObject(DominionGUI gui, Decision decision) {
 			gui.setupGainCard(5, false, null);
 		}
 
@@ -332,6 +335,8 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 	}
 	
+
+
 	public class Smithy extends DefaultCard implements ActionCard {
 		private static final long serialVersionUID = 1L;
 		@Override public int getCost() { return 4; }
@@ -393,6 +398,58 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 	}
 
+	public class Mine extends TreasureSelectionCard implements DecisionCard {
+		private static final long serialVersionUID = 1L;
+		@Override public int getCost() { return 5; }
+
+		@Override
+		public void playCard(Turn turn) {
+			if(turn instanceof ServerTurn) {
+				ServerTurn st = (ServerTurn)turn;
+				TrashThenGainDecision ttgd = new TrashThenGainDecision();
+				CardListDecision decision;
+				do {
+					decision = (CardListDecision) st.getDecision(this, ttgd);
+					// if you tried to trash some number other than 1, or it's not a treasure, 
+					// request a new one, otherwise we move on to the gaining bit
+				} while(decision.list.size() != 1 || !(decision.list.get(0) instanceof TreasureCard));
+				TreasureCard toTrash = (TreasureCard) decision.list.get(0);
+				st.trashCardFromHand(toTrash);
+				st.sendDecisionToPlayer(this, new ListAndOptionsDecision(ttgd, decision));
+				
+				ttgd = new TrashThenGainDecision(toTrash);
+				do {
+					decision = (CardListDecision) st.getDecision(this, ttgd);
+					// if you tried to gain some number other than 1, or it's not a treasure, or none are left 
+					// request a new one, otherwise go ahead and gain it!
+				} while(decision.list.size() != 1 || !(decision.list.get(0) instanceof TreasureCard)
+						|| !st.gainCard(decision.list.get(0)));
+				st.gainCardToHand(decision.list.get(0));
+				st.sendDecisionToPlayer(this, new ListAndOptionsDecision(ttgd, decision));
+			}
+		}
+
+		@Override
+		public void createAndSendDecisionObject(DominionGUI gui, Decision decision) {
+			TrashThenGainDecision dec = (TrashThenGainDecision) decision;
+			if(dec.whichDecision == WhichDecision.chooseTrash) {
+				gui.setupCardSelection(1, false, SelectionType.trash, this);
+			} else {
+				gui.setupGainCard(dec.toTrash.getCost() + 3, false, this);
+			}
+		}
+
+		@Override
+		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision, ClientTurn turn) {
+			ListAndOptionsDecision lod = (ListAndOptionsDecision) decision;
+			TrashThenGainDecision dec = lod.ttgd;
+			if(dec.whichDecision == WhichDecision.chooseTrash) {
+				gui.trashCardFromHand(playerNum, lod.cld.list.get(0));
+			} else {
+				gui.addCardToHand(playerNum, lod.cld.list.get(0));
+			}
+		}
+	}
 
 	public class Witch extends DefaultCard implements AttackCard {
 		private static final long serialVersionUID = 1L;
@@ -418,7 +475,7 @@ public interface Card extends Serializable, Comparable<Card> {
 				ServerTurn st = (ServerTurn)turn;
 				CardListDecision decision;
 				do {
-					decision = (CardListDecision) st.getDecision(this);
+					decision = (CardListDecision) st.getDecision(this, null);
 					// if you tried to put back some number other than 1, or it's not in your hand
 					// request a new one, otherwise we're done 
 				} while(decision.list.size() != 1 || !st.putOnDeckFromHand(decision.list.get(0)));
@@ -427,7 +484,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 
 		@Override
-		public void createAndSendDecisionObject(DominionGUI gui) {
+		public void createAndSendDecisionObject(DominionGUI gui, Decision decision) {
 			gui.setupCardSelection(1, true, SelectionType.undraw, null);
 		}
 
@@ -489,7 +546,7 @@ public interface Card extends Serializable, Comparable<Card> {
 				ServerTurn st = (ServerTurn)turn;
 				CardListDecision decision;
 				do {
-					decision = (CardListDecision) st.getDecision(this);
+					decision = (CardListDecision) st.getDecision(this, null);
 					// if you tried to gain some number other than 1, it costs more than 4, or the one you wanted 
 					// isn't in the supply, request a new one, otherwise we're done and we reap the benefits
 				} while(decision.list.size() != 1 || decision.list.get(0).getCost() > 4 
@@ -499,7 +556,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 
 		@Override
-		public void createAndSendDecisionObject(DominionGUI gui) {
+		public void createAndSendDecisionObject(DominionGUI gui, Decision decision) {
 			gui.setupGainCard(4, false, null);
 		}
 
@@ -548,7 +605,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 
 		@Override
-		public void createAndSendDecisionObject(DominionGUI gui) {
+		public void createAndSendDecisionObject(DominionGUI gui, Decision decision) {
 			// no decision needed from the GUI for this card			
 		}
 

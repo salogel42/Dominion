@@ -499,6 +499,11 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		//TODO add 1 to # in deck
 	}
 	
+	@Override
+	public void addCardToHand(int playerNum, Card c) {
+		handPane.add(new HandCardButton(c, this));
+		resetFrameLocations();
+	}
 	// Assumed to be trashing from hand
 	@Override
 	public void trashCardSelection(int playerNum, CardListDecision cld) {
@@ -873,8 +878,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		case addCardToHand:
 			playerModels[m.playerNum].turn.inHand.add(m.card);
 			if(m.playerNum == localPlayer){
-				handPane.add(new HandCardButton(m.card, this));
-				resetFrameLocations();
+				addCardToHand(localPlayer, m.card);
 			} else {
 				messageText += names[m.playerNum] + " drew a card.\n";
 				messagePane.setText(messageText);
@@ -920,7 +924,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 			break;
 		case makeDecision:
 			if(m.playerNum == localPlayer){
-				((DecisionCard)m.card).createAndSendDecisionObject(this);
+				((DecisionCard)m.card).createAndSendDecisionObject(this, m.decisionObject);
 			}
 			break;
 		case sendDecision: //On this side, this means that decision was accepted
@@ -935,4 +939,5 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 			System.out.println("Missing a case:" + m.action + "!");
 		}
 	}
+
 }

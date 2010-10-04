@@ -1,8 +1,5 @@
 Should be fairly easy:
 
-4 Ironworks – Gain a card costing up to 4 . If it is an… Action card, +1 Action. Treasure card, +1 . Victory card, +1 Card.
-3 Workshop – Gain a card costing up to 4 .
-
 3 Chancellor – +2 . You may immediately put your deck into your discard pile.
 4 Baron – +1 Buy. You may discard an estate card. If you do, +4 . Otherwise, gain an estate card.
 4 Cutpurse – +2 . Each other player discards a Copper card (or reveals a hand with no Copper).

@@ -56,4 +56,35 @@ public interface Decision extends Serializable {
 			return "(HandSelectionDecision with min="+min+" max="+max+")";
 		}
 	}
+
+	// used by Mine and Remodel
+	@SuppressWarnings("serial")
+	public class TrashThenGainDecision implements Decision {
+		enum WhichDecision { chooseTrash, chooseGain };
+		public WhichDecision whichDecision;
+		public Card toTrash = null;
+		public TrashThenGainDecision() { whichDecision = WhichDecision.chooseTrash; }
+		public TrashThenGainDecision(Card toTrash) { 
+			whichDecision = WhichDecision.chooseGain; 
+			this.toTrash = toTrash;
+		}
+		@Override
+		public String toString() {
+			return "(TrashThenGainDecision with whichDecision="+whichDecision+" toTrash="+toTrash+")";
+		}
+	}
+
+	// used by Mine and Remodel
+	@SuppressWarnings("serial")
+	public class ListAndOptionsDecision implements Decision {
+		public TrashThenGainDecision ttgd;
+		public CardListDecision cld;
+		public ListAndOptionsDecision(TrashThenGainDecision t, CardListDecision c) { ttgd=t; cld=c; }
+		@Override
+		public String toString() {
+			return "(TrashThenGainDecision with CardListDecision="+cld+" TrashThenGainDecision="+ttgd+")";
+		}
+	}
+
+	
 }
