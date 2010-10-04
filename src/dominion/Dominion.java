@@ -501,6 +501,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 	
 	@Override
 	public void addCardToHand(int playerNum, Card c) {
+		playerModels[playerNum].turn.inHand.add(c);
 		handPane.add(new HandCardButton(c, this));
 		resetFrameLocations();
 	}
@@ -878,7 +879,8 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		case addCardToHand:
 			playerModels[m.playerNum].turn.inHand.add(m.card);
 			if(m.playerNum == localPlayer){
-				addCardToHand(localPlayer, m.card);
+				handPane.add(new HandCardButton(m.card, this));
+				resetFrameLocations();
 			} else {
 				messageText += names[m.playerNum] + " drew a card.\n";
 				messagePane.setText(messageText);
