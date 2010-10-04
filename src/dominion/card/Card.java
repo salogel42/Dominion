@@ -17,20 +17,20 @@ public interface Card extends Serializable, Comparable<Card> {
 	public static final Card curse = new Curse();
 
 	public static final Card[] mustUse = { 
+		
 	};
 
 	public static final Card[] baseRandomizerDeck = {
-		new Chapel(), new Cellar(),
-		new Moat(), 
-		new Village(), new Woodcutter(), 
-		new Bureaucrat(), new Feast(), 
-		new Moneylender(), new Smithy(),
+		new Chapel(), new Cellar(), new Moat(), 
+		new Village(), new Woodcutter(), new Workshop(),
+		new Bureaucrat(), new Feast(),  new Moneylender(), new Smithy(),
 		new CouncilRoom(), new Festival(), new Laboratory(), new Market(),
 		new Witch()
 	};
 	public static final Card[] intrigueRandomizerDeck = {
-		new Courtyard(), 
-		new GreatHall(), new ShantyTown(), new Conspirator(), new SeaHag(), new Tribute(), 
+		new Courtyard(), new GreatHall(), new ShantyTown(), 
+		new Conspirator(), new Ironworks(), new SeaHag(), 
+		new Tribute(), 
 		new Harem()
 	};
 	public static final Card[] seasideRandomizerDeck= {
@@ -53,6 +53,26 @@ public interface Card extends Serializable, Comparable<Card> {
 				return toString().compareTo(other.toString());
 			}
 			return getCost() - other.getCost();
+		}
+	}
+
+	@SuppressWarnings("serial")
+	public abstract static class SwitchByType extends DefaultCard {
+		// used by both Tribute and Ironworks when you get bonuses based on type
+		public void switchHelper(Turn turn, Decision decision, int numCards, int numGain) {
+			System.out.println("doing continueProcessing for a tribute");
+			List<Card> list = ((CardListDecision) decision).list;
+			if(list.size()!=numCards) return;//TODO do something smarter here?  not sure what
+			for(int i = 0; i < numCards; i++) {
+				Card c = list.get(i);
+				//if both the same, only do it once, only applicable for Tribute
+				if(i == 1 && c.equals(list.get(0))) break;
+				//note, not else if -- if multiple it gets all of the bonuses!
+				if(c instanceof ActionCard) turn.addActions(numGain);
+				if(c instanceof VictoryCard) turn.drawCards(numGain);
+				if(c instanceof TreasureCard) turn.addBuyingPower(numGain);
+				//curses get nothing, as do nulls (i.e. if no cards were left in deck)
+			}
 		}
 	}
 
@@ -189,6 +209,35 @@ public interface Card extends Serializable, Comparable<Card> {
 		public void playCard(Turn turn) {
 			turn.addBuys(1);
 			turn.addBuyingPower(2);
+		}
+	}
+
+	public class Workshop extends DefaultCard implements DecisionCard {
+		private static final long serialVersionUID = 1L;
+		@Override public int getCost() { return 3; }
+
+		@Override
+		public void playCard(Turn turn) {
+			if(turn instanceof ServerTurn) {
+				ServerTurn st = (ServerTurn)turn;
+				CardListDecision decision;
+				do {
+					decision = (CardListDecision) st.getDecision(this);
+					// if you tried to gain some number other than 1, it costs more than 4, or the one you wanted 
+					// isn't in the supply, request a new one, otherwise we're done
+				} while(decision.list.size() != 1 || decision.list.get(0).getCost() > 4 
+						|| !st.gainCard(decision.list.get(0)));
+			}
+		}
+
+		@Override
+		public void createAndSendDecisionObject(DominionGUI gui) {
+			gui.setupGainCard(4, false, null);
+		}
+
+		@Override
+		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision, ClientTurn turn) {
+			/* server handles sending gain message */
 		}
 	}
 
@@ -430,6 +479,37 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 	}
 
+	public class Ironworks extends SwitchByType implements DecisionCard {
+		private static final long serialVersionUID = 1L;
+		@Override public int getCost() { return 4; }
+
+		@Override
+		public void playCard(Turn turn) {
+			if(turn instanceof ServerTurn) {
+				ServerTurn st = (ServerTurn)turn;
+				CardListDecision decision;
+				do {
+					decision = (CardListDecision) st.getDecision(this);
+					// if you tried to gain some number other than 1, it costs more than 4, or the one you wanted 
+					// isn't in the supply, request a new one, otherwise we're done and we reap the benefits
+				} while(decision.list.size() != 1 || decision.list.get(0).getCost() > 4 
+						|| !st.gainCard(decision.list.get(0)));
+				switchHelper(turn, decision, 1, 1);
+			}
+		}
+
+		@Override
+		public void createAndSendDecisionObject(DominionGUI gui) {
+			gui.setupGainCard(4, false, null);
+		}
+
+		@Override
+		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision, ClientTurn turn) {
+			/* server handles sending gain message, so don't worry about that bit here */
+			switchHelper(turn, decision, 1, 1);
+		}
+	}
+
 	public class SeaHag extends DefaultCard implements AttackCard {
 		private static final long serialVersionUID = 1L;
 		@Override public int getCost() { return 4; }
@@ -443,7 +523,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		@Override public void playCard(Turn turn) { /* it's all in the reaction */ }
 	}
 
-	public class Tribute extends DefaultCard implements InteractingCard, DecisionCard {
+	public class Tribute extends SwitchByType implements InteractingCard, DecisionCard {
 		private static final long serialVersionUID = 1L;
 		@Override public int getCost() { return 5; }
 
@@ -461,7 +541,7 @@ public interface Card extends Serializable, Comparable<Card> {
 				for(int i = 0; i < 2; i++) turn.discardCard(list.get(i));
 				CardListDecision cld = new CardListDecision(list);
 				//just do do it directly here, and send a decision confirmation to the current player
-				tributeHelper(turn.currentTurn(), cld);
+				switchHelper(turn.currentTurn(), cld, 2, 2);
 				turn.currentTurn().sendDecisionToPlayer(this, cld);
 			}
 			//everyone else just ignores it
@@ -474,25 +554,7 @@ public interface Card extends Serializable, Comparable<Card> {
 
 		@Override
 		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision, ClientTurn turn) {
-			tributeHelper(turn, decision);
-		}
-
-		// used by both server and client, but called into through different methods since it
-		// depends on the "decision", i.e. the cards revealed by the player to the left
-		public void tributeHelper(Turn turn, Decision decision) {
-			System.out.println("doing continueProcessing for a tribute");
-			List<Card> list = ((CardListDecision) decision).list;
-			if(list.size()!=2) return;//TODO do something smarter here?  not sure what
-			for(int i = 0; i < 2; i++) {
-				Card c = list.get(i);
-				//if both the same, only do it once
-				if(i == 1 && c.equals(list.get(0))) break;
-				//note, not else if -- if multiple it gets all of the bonuses!
-				if(c instanceof ActionCard) turn.addActions(2);
-				if(c instanceof VictoryCard) turn.drawCards(2);
-				if(c instanceof TreasureCard) turn.addBuyingPower(2);
-				//curses get nothing, as do nulls (i.e. if no cards were left in deck)
-			}
+			switchHelper(turn, decision, 2, 2);
 		}
 
 	}
@@ -517,4 +579,5 @@ public interface Card extends Serializable, Comparable<Card> {
 			turn.addBuyingPower(1);
 		}
 	}	
+
 }
