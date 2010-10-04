@@ -8,7 +8,6 @@ Should be fairly easy:
 6 Nobles – Choose 1: +3 Cards; or +2 Actions. 2 .
 2 Pawn – Choose two: +1 Card, +1 Action, +1 Buy, +1 . (The choices must be different.)
 2 Pearl Diver – +1 Card, +1 Action. Look at the bottom card of your deck. You may put it on top.
-4 Remodel – Trash a card from your hand. Gain a card costing up to 2 more than the trashed card.
 5 Saboteur – Each other player reveals cards from the top of his deck until revealing one costing 3 or more. He trashes that card and may gain a card costing at most 2 less than it. He discards the other revealed cards.
 4 Salvager – +1 Buy. Trash a card from your hand. + equal to its cost.
 5 Upgrade – +1 Card, +1 Action. Trash a card form your hand. Gain a card costing exactly 1 more than it.
@@ -27,7 +26,6 @@ Should be fairly easy:
 3 Lookout – +1 Action. Look at the top 3 cards of your deck. Trash one of them. Discard one of them. Put the other one on top of your deck.
 4 Mining Village – +1 Card, +2 Actions. You may trash this card immediately, If you do, +2 .
 2 Secret Chamber – Discard any number of cards. +1 coin for per card discarded.  Reaction: When another player plays an Attack card, you may reveal this from your hand. If you do, +2 Cards, then put 2 cards from your hand on top of your deck.
-5 Mine – Trash a Treasure card from your hand. Gain a Treasure card costing up to 3 more; put it into your hand.
 
 duration:
 3 Fishing Village – +2 Actions, +1 . At the start of your next turn: +1 Action, +1 .
@@ -106,3 +104,7 @@ Already Implemented:
 4 Bureaucrat – Gain a Silver Card: put it on top of your deck. Each other player reveals a Victory card from his hand and puts it on his deck (or reveals a hand with no Victory cards).
 2 Courtyard – +3 Cards. Put a card from your hand on top of your deck.
 4 Feast –Trash this card. Gain a card costing up to 5 coin.
+4 Ironworks – Gain a card costing up to 4 . If it is an… Action card, +1 Action. Treasure card, +1 . Victory card, +1 Card.
+3 Workshop – Gain a card costing up to 4 .
+5 Mine – Trash a Treasure card from your hand. Gain a Treasure card costing up to 3 more; put it into your hand.
+4 Remodel – Trash a card from your hand. Gain a card costing up to 2 more than the trashed card.

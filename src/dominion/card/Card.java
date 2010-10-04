@@ -26,7 +26,7 @@ public interface Card extends Serializable, Comparable<Card> {
 	public static final Card[] baseRandomizerDeck = {
 		new Chapel(), new Cellar(), new Moat(), 
 		new Village(), new Woodcutter(), new Workshop(),
-		new Bureaucrat(), new Feast(),  new Moneylender(), new Smithy(),
+		new Bureaucrat(), new Feast(),  new Moneylender(), new Remodel(), new Smithy(),
 		new CouncilRoom(), new Festival(), new Laboratory(), new Market(),
 		new Mine(), new Witch()
 	};
@@ -263,10 +263,11 @@ public interface Card extends Serializable, Comparable<Card> {
 			else if(numVictory == 1) turn.putOnDeckFromHand(firstVictory);
 			else {
 				CardListDecision decision;
-				// there'd better be exactly 1, keep prompting till it is, also must be a victory card
+				// there'd better be exactly 1, keep prompting till it is, also must be a victory card,
+				// and in the player's hand
 				while(((decision = (CardListDecision)turn.getDecision(this, null))).list.size() != 1 &&
-						!(decision instanceof VictoryCard));
-				turn.putOnDeckFromHand(((CardListDecision)decision).list.get(0));
+						!(decision instanceof VictoryCard) && !turn.inHand.contains(decision.list.get(0)));
+				turn.putOnDeckFromHand(decision.list.get(0));
 			}
 		}
 
@@ -335,7 +336,56 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 	}
 	
+	public class Remodel extends TreasureSelectionCard implements DecisionCard {
+		private static final long serialVersionUID = 1L;
+		@Override public int getCost() { return 4; }
 
+		@Override
+		public void playCard(Turn turn) {
+			if(turn instanceof ServerTurn) {
+				ServerTurn st = (ServerTurn)turn;
+				TrashThenGainDecision ttgd = new TrashThenGainDecision();
+				CardListDecision decision;
+				do {
+					decision = (CardListDecision) st.getDecision(this, ttgd);
+					// prompt til you get 1 card that is in the player's hand
+				} while(decision.list.size() != 1 || !turn.inHand.contains(decision.list.get(0)));
+				Card toTrash = decision.list.get(0);
+				st.trashCardFromHand(toTrash);
+				st.sendDecisionToPlayer(this, new ListAndOptionsDecision(ttgd, decision));
+				
+				ttgd = new TrashThenGainDecision(toTrash);
+				do {
+					decision = (CardListDecision) st.getDecision(this, ttgd);
+					// prompt til you get 1 card that's still available and not too expensive
+				} while(decision.list.size() != 1 || !st.gainCard(decision.list.get(0))
+						|| decision.list.get(0).getCost() > toTrash.getCost() + 2);
+				st.gainCard(decision.list.get(0));
+				st.sendDecisionToPlayer(this, new ListAndOptionsDecision(ttgd, decision));
+			}
+		}
+
+		@Override
+		public void createAndSendDecisionObject(DominionGUI gui, Decision decision) {
+			TrashThenGainDecision dec = (TrashThenGainDecision) decision;
+			if(dec.whichDecision == WhichDecision.chooseTrash) {
+				gui.setupCardSelection(1, true, SelectionType.trash, null);
+			} else {
+				gui.setupGainCard(dec.toTrash.getCost() + 2, false, this);
+			}
+		}
+
+		@Override
+		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision, ClientTurn turn) {
+			ListAndOptionsDecision lod = (ListAndOptionsDecision) decision;
+			TrashThenGainDecision dec = lod.ttgd;
+			if(dec.whichDecision == WhichDecision.chooseTrash) {
+				gui.trashCardFromHand(playerNum, lod.cld.list.get(0));
+			} else {
+				// currently don't do any visual for gains
+			}
+		}
+	}
 
 	public class Smithy extends DefaultCard implements ActionCard {
 		private static final long serialVersionUID = 1L;
@@ -412,7 +462,8 @@ public interface Card extends Serializable, Comparable<Card> {
 					decision = (CardListDecision) st.getDecision(this, ttgd);
 					// if you tried to trash some number other than 1, or it's not a treasure, 
 					// request a new one, otherwise we move on to the gaining bit
-				} while(decision.list.size() != 1 || !(decision.list.get(0) instanceof TreasureCard));
+				} while(decision.list.size() != 1 || !(decision.list.get(0) instanceof TreasureCard)
+						|| !turn.inHand.contains(decision.list.get(0)));
 				TreasureCard toTrash = (TreasureCard) decision.list.get(0);
 				st.trashCardFromHand(toTrash);
 				st.sendDecisionToPlayer(this, new ListAndOptionsDecision(ttgd, decision));
@@ -423,6 +474,7 @@ public interface Card extends Serializable, Comparable<Card> {
 					// if you tried to gain some number other than 1, or it's not a treasure, or none are left 
 					// request a new one, otherwise go ahead and gain it!
 				} while(decision.list.size() != 1 || !(decision.list.get(0) instanceof TreasureCard)
+						|| decision.list.get(0).getCost() > 3 + toTrash.getCost()
 						|| !st.gainCard(decision.list.get(0)));
 				st.gainCardToHand(decision.list.get(0));
 				st.sendDecisionToPlayer(this, new ListAndOptionsDecision(ttgd, decision));
