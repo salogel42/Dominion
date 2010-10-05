@@ -180,7 +180,16 @@ public class ServerTurn extends Turn {
 		return c;
 	}
 
+
+	// note: this is NOT from the supply, if you want to 
+	// add a card to the hand from the supply, use gainCardToHand
+	public void putCardInHand(Card c) {
+		inHand.add(c);
+		player.sendPutInHand(c);
+	}
+
 	public boolean gainCardToHand(Card c) {
+		if(player.getCardFromSupply(c) == null) return false;
 		inHand.add(c);
 		return true;
 	}

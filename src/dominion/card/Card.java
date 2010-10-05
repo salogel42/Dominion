@@ -31,7 +31,8 @@ public interface Card extends Serializable, Comparable<Card> {
 		new Bureaucrat(), new Feast(), new Gardens(), new Militia(), 
 		new Moneylender(), new Remodel(), new Smithy(),
 		new CouncilRoom(), new Festival(), new Laboratory(), new Market(),
-		new Mine(), new Witch()
+		new Mine(), new Witch(),
+		new Adventurer()
 	};
 	public static final Card[] intrigueRandomizerDeck = {
 		new Courtyard(), new GreatHall(), new ShantyTown(), 
@@ -520,8 +521,7 @@ public interface Card extends Serializable, Comparable<Card> {
 					// request a new one, otherwise go ahead and gain it!
 				} while(decision.list.size() != 1 || !(decision.list.get(0) instanceof TreasureCard)
 						|| decision.list.get(0).getCost() > 3 + toTrash.getCost()
-						|| !st.gainCard(decision.list.get(0)));
-				st.gainCardToHand(decision.list.get(0));
+						|| !st.gainCardToHand(decision.list.get(0)));
 				st.sendDecisionToPlayer(this, new ListAndOptionsDecision(ttgd, decision));
 			}
 		}
@@ -558,6 +558,34 @@ public interface Card extends Serializable, Comparable<Card> {
 
 		@Override public void playCard(Turn turn) { turn.drawCards(2); }
 		@Override public int getCost() { return 5; }
+	}
+
+	public class Adventurer extends DefaultCard implements ActionCard {
+		private static final long serialVersionUID = 1L;
+		@Override public int getCost() { return 6; }
+
+		@Override
+		public void playCard(Turn turn) {
+			if(turn instanceof ServerTurn) {
+				ServerTurn st = (ServerTurn)turn;
+				
+				List<Card> revealedCards = new ArrayList<Card>();
+				List<Card> treasureToPickUp = new ArrayList<Card>();
+				// reveal cards one at a time until you get 2 treasures
+				while(treasureToPickUp.size()<2) {
+					Card c = st.revealTopCard();
+					if(c instanceof TreasureCard) {
+						treasureToPickUp.add(c);
+						// this sends a message to all the players
+						st.putCardInHand(c);
+					} else
+						revealedCards.add(c);
+				}
+				// now discard all the revealed cards
+				for(Card c : revealedCards)
+					st.discardCard(c);
+			}
+		}
 	}
 
 	//Intrigue

@@ -187,6 +187,11 @@ public class Game implements StreamListener, Runnable {
 				pi.streams.sendMessage(new RemoteMessage(Action.putOnDeckFromHand, playerNum, c, null));
 		}
 
+		public void sendPutInHand(Card c) {
+			for(PlayerInfo pi : Game.this.players)
+				pi.streams.sendMessage(new RemoteMessage(Action.putInHand, playerNum, c, null));
+		}
+
 		//assumes caller has already removed it from appropriate place
 		public void trashCard(Card c) {
 			trash.add(c);
