@@ -3,6 +3,7 @@ package dominion.card;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 import dominion.ClientTurn;
 import dominion.DominionGUI;
@@ -21,20 +22,21 @@ public interface Card extends Serializable, Comparable<Card> {
 	public static final Card curse = new Curse();
 
 	public static final Card[] mustUse = { 
-		 
+
 	};
 
 	public static final Card[] baseRandomizerDeck = {
 		new Chapel(), new Cellar(), new Moat(), 
 		new Village(), new Woodcutter(), new Workshop(),
-		new Bureaucrat(), new Feast(), new Militia(), new Moneylender(), new Remodel(), new Smithy(),
+		new Bureaucrat(), new Feast(), new Gardens(), new Militia(), 
+		new Moneylender(), new Remodel(), new Smithy(),
 		new CouncilRoom(), new Festival(), new Laboratory(), new Market(),
 		new Mine(), new Witch()
 	};
 	public static final Card[] intrigueRandomizerDeck = {
 		new Courtyard(), new GreatHall(), new ShantyTown(), 
 		new Conspirator(), new Ironworks(), new SeaHag(), 
-		new Tribute(), 
+		new Duke(), new Tribute(), 
 		new Harem()
 	};
 	public static final Card[] seasideRandomizerDeck= {
@@ -319,6 +321,13 @@ public interface Card extends Serializable, Comparable<Card> {
 		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision, ClientTurn turn) {
 			/* server handles sending gain message */
 		}
+	}
+
+	public static class Gardens extends DefaultCard implements ConditionalVictoryCard {
+		private static final long serialVersionUID = 1L;
+		@Override public int getCost() { return 4; }
+		@Override public int getVictoryPoints() { return 0; }
+		@Override public int getVictoryPoints(Stack<Card> deck) { return deck.size()/10; }
 	}
 
 	public class Militia extends DefaultCard implements AttackCard, DecisionCard {
@@ -666,6 +675,20 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 
 		@Override public void playCard(Turn turn) { /* it's all in the reaction */ }
+	}
+
+	public static class Duke extends DefaultCard implements ConditionalVictoryCard {
+		private static final long serialVersionUID = 1L;
+		@Override public int getCost() { return 5; }
+		@Override public int getVictoryPoints() { return 0; }
+		@Override 
+		public int getVictoryPoints(Stack<Card> deck) { 
+			int count = 0;
+			for(Card c : deck) {
+				if(c instanceof Duchy) count++;
+			}
+			return count;
+		}
 	}
 
 	public class Tribute extends SwitchByType implements InteractingCard, DecisionCard {

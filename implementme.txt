@@ -21,7 +21,6 @@ Should be fairly easy:
 5 Treasury – +1 Card, +1 Action, +1 . When you discard this from play, if you didn’t buy a Victory card this turn, you may put this on top of your deck.
 3 Steward – Choose one: +2 cards; or +2 ; or trash 2 cards from your hand.
 3 Swindler – +2 . Each other player trashes the top card of his deck and gains a card of the same cost that you choose.
-4 Militia – +2 . Each other player discards down to 3 cards in his hand.
 3 Masquerade – +2 Cards. Each player passes a card from his hand to the left at once. Then you may trash a card from your hand.
 3 Lookout – +1 Action. Look at the top 3 cards of your deck. Trash one of them. Discard one of them. Put the other one on top of your deck.
 4 Mining Village – +1 Card, +2 Actions. You may trash this card immediately, If you do, +2 .
@@ -51,8 +50,6 @@ need mats
 
 need thinking/special stuff:
 4 Bridge – +1 Buy, +1 . All cards (including cards in players’ hands) cost 1 less this turn, but no less than 0 .
-5 Duke – Worth 1 for each Duchy you have.
-4 Gardens – Worth 1 for every 10 cards in your deck (rounded down).
 4 Coppersmith – Copper produces an extra 1 this turn.
 2 Embargo –+2 . Trash this card. Put an Embargo token on top of a Supply pile. When a player buys a card, he gains a Curse card per Embargo token on that pile.
 3 Smugglers – Gain a copy of a card costing up to 6 that the player to your right gained on his last turn.
@@ -108,3 +105,6 @@ Already Implemented:
 3 Workshop – Gain a card costing up to 4 .
 5 Mine – Trash a Treasure card from your hand. Gain a Treasure card costing up to 3 more; put it into your hand.
 4 Remodel – Trash a card from your hand. Gain a card costing up to 2 more than the trashed card.
+4 Militia – +2 . Each other player discards down to 3 cards in his hand.
+4 Gardens – Worth 1 for every 10 cards in your deck (rounded down).
+5 Duke – Worth 1 for each Duchy you have.

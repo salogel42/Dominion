@@ -13,6 +13,7 @@ import dominion.RemoteMessage.Action;
 import dominion.card.ActionCard;
 import dominion.card.AttackCard;
 import dominion.card.Card;
+import dominion.card.ConditionalVictoryCard;
 import dominion.card.Decision;
 import dominion.card.Decision.CardListDecision;
 import dominion.card.Decision.GainDecision;
@@ -404,8 +405,11 @@ public class Game implements StreamListener, Runnable {
 			players[i].deck.addAll(players[i].nextTurn.inPlay);
 			
 			for(Card c : players[i].deck) {
-				if(c instanceof VictoryCard)
-					playerScore += ((VictoryCard) c).getVictoryPoints();
+				if(c instanceof VictoryCard) {
+					if(c instanceof ConditionalVictoryCard) 
+						playerScore += ((ConditionalVictoryCard) c).getVictoryPoints(players[i].deck);
+					else playerScore += ((VictoryCard) c).getVictoryPoints();
+				}
 			}
 			System.out.println("Server: Player " + i + " had the following deck: " + players[i].deck);
 			System.out.println("Server: Player " + i + " had " + playerScore + " points");
