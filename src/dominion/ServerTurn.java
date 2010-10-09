@@ -180,6 +180,12 @@ public class ServerTurn extends Turn {
 		return c;
 	}
 
+	// could also be called getTopCard, the looking is done on client side,
+	// but i'm intending this to be used when you need to "look at" a card
+	// note that this does actually remove it from the deck.
+	public Card lookAtTopCard() {
+		return player.getTopCard();
+	}
 
 	// note: this is NOT from the supply, if you want to 
 	// add a card to the hand from the supply, use gainCardToHand

@@ -9,7 +9,7 @@ public interface DominionGUI {
 	public void setupCardSelection(int upperLimit, boolean exact, SelectionType type, SelectionCard c);
 	public void setupGainCard(int upperLimit, boolean exact, SelectionCard c);
 
-	public <E extends Enum<E>> void makeMultipleChoiceDecision(String message, Class<E> enumType);
+	public <E extends Enum<E>> void makeMultipleChoiceDecision(String message, Class<E> enumType, Card c);
 
 	public void trashCardSelection(int playerNum, CardListDecision cld);
 	public void trashCardFromHand(int playerNum, Card c);

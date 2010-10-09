@@ -43,7 +43,19 @@ public interface Decision extends Serializable {
 			return "(CardListDecision with list " + list + ")";
 		}
 	}
-	
+
+	public static class SingleCardDecision implements Decision {
+		private static final long serialVersionUID = 1L;
+		public final Card card;
+		public SingleCardDecision(Card c) {
+			this.card = c;
+		}	
+		@Override
+		public String toString() {
+			return "(SingleCardDecision with card " + card + ")";
+		}
+	}
+
 	public static class HandSelectionDecision implements Decision {
 		private static final long serialVersionUID = 1L;
 		public final int min, max;
@@ -98,6 +110,7 @@ public interface Decision extends Serializable {
 	}
 	
 	public enum yesNo {yes, no};
+	public enum keepDiscard {keep, discard};
 	@SuppressWarnings("serial")
 	public class EnumDecision<E extends Enum<E>> implements Decision {
 		public E enumValue;

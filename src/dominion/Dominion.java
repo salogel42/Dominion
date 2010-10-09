@@ -949,10 +949,17 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 	}
 
 	@Override
-	public <E extends Enum<E>> void makeMultipleChoiceDecision(String text, Class<E> enumType) {
+	public <E extends Enum<E>> void makeMultipleChoiceDecision(String text, Class<E> enumType, Card c) {
 		E[] options = enumType.getEnumConstants();
-		int result = JOptionPane.showOptionDialog(this, text, "Make a decision",
-				JOptionPane.OK_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, null);
+		Icon icon = null;
+		Object displayMessage = text;
+		if(c != null) {
+			Image image = Toolkit.getDefaultToolkit().getImage(IMAGE_PATH + getImageNameForCard(c));
+			icon = new ImageIcon(image);
+			displayMessage = new Object[]{text, icon};
+		}
+		int result = JOptionPane.showOptionDialog(this, displayMessage, "Make a decision",
+				JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, null);
 
 		EnumDecision<E> ed = new EnumDecision<E>(options[result]);
 		streams.sendMessage(new RemoteMessage(Action.sendDecision, localPlayer, null, ed));

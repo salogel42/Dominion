@@ -14,7 +14,9 @@ import dominion.card.Decision.CardListDecision;
 import dominion.card.Decision.EnumDecision;
 import dominion.card.Decision.ListAndOptionsDecision;
 import dominion.card.Decision.NumberDecision;
+import dominion.card.Decision.SingleCardDecision;
 import dominion.card.Decision.TrashThenGainDecision;
+import dominion.card.Decision.keepDiscard;
 import dominion.card.Decision.yesNo;
 import dominion.card.Decision.TrashThenGainDecision.WhichDecision;
 
@@ -32,8 +34,8 @@ public interface Card extends Serializable, Comparable<Card> {
 		new Chancellor(), new Village(), new Woodcutter(), new Workshop(),
 		new Bureaucrat(), new Feast(), new Gardens(), new Militia(), 
 		new Moneylender(), new Remodel(), new Smithy(),
-		new CouncilRoom(), new Festival(), new Laboratory(), new Market(),
-		new Mine(), new Witch(),
+		new CouncilRoom(), new Festival(), new Laboratory(), new Library(),
+		new Market(), new Mine(), new Witch(),
 		new Adventurer()
 	};
 	public static final Card[] intrigueRandomizerDeck = {
@@ -224,7 +226,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		@Override
 		public void createAndSendDecisionObject(DominionGUI gui,
 				Decision decision) {
-			gui.makeMultipleChoiceDecision("Do you want to put your deck into your discard pile?", yesNo.class);
+			gui.makeMultipleChoiceDecision("Do you want to put your deck into your discard pile?", yesNo.class, null);
 		}
 	}
 
@@ -509,6 +511,47 @@ public interface Card extends Serializable, Comparable<Card> {
 		public void playCard(Turn turn) {
 			turn.drawCards(2);
 			turn.addActions(1);
+		}
+	}
+
+	public class Library extends DefaultCard implements DecisionCard {
+		private static final long serialVersionUID = 1L;
+		@Override public int getCost() { return 5; }
+
+		// TODO: give error if not the right kind of decision?
+		@SuppressWarnings("unchecked")
+		@Override
+		public void playCard(Turn turn) {
+			if(turn instanceof ServerTurn) {
+				ServerTurn st = (ServerTurn) turn;
+				List<Card> setAside = new ArrayList<Card>();
+				while(st.inHand.size() < 7) {
+					Card c = st.lookAtTopCard(); // pops top card off deck
+					if(c == null) break; // all cards are in hand or set-aside list, no more to draw
+					if(c instanceof ActionCard) {
+						Decision d = ((ServerTurn) turn).getDecision(this, new SingleCardDecision(c));
+						if(((EnumDecision<keepDiscard>)d).enumValue == keepDiscard.discard) {
+							setAside.add(c);
+							continue;
+						}
+					}
+					st.putCardInHand(c);
+				}
+				for(Card c : setAside) st.discardCard(c);
+			}
+		}
+
+		@Override
+		public void carryOutDecision(DominionGUI gui, int playerNum,
+				Decision decision, ClientTurn turn) {
+			// Note: nothing to do here unless we add visuals for "set aside"
+		}
+
+		@Override
+		public void createAndSendDecisionObject(DominionGUI gui,
+				Decision decision) {
+			gui.makeMultipleChoiceDecision("Do you want to set aside this action (discard) or draw it into your hand (keep)?", 
+						keepDiscard.class, ((SingleCardDecision)decision).card);
 		}
 	}
 
