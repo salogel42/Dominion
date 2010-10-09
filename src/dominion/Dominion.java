@@ -43,11 +43,12 @@ import dominion.RemoteMessage.Action;
 import dominion.card.ActionCard;
 import dominion.card.Card;
 import dominion.card.Decision;
-import dominion.card.Decision.CardListDecision;
-import dominion.card.Decision.GainDecision;
-import dominion.card.Decision.StackDecision;
 import dominion.card.DecisionCard;
 import dominion.card.SelectionCard;
+import dominion.card.Decision.CardListDecision;
+import dominion.card.Decision.EnumDecision;
+import dominion.card.Decision.GainDecision;
+import dominion.card.Decision.StackDecision;
 
 @SuppressWarnings("serial")
 public class Dominion extends JFrame implements StreamListener, ActionListener, DominionGUI {
@@ -945,6 +946,16 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		default: 
 			System.out.println("Missing a case:" + m.action + "!");
 		}
+	}
+
+	@Override
+	public <E extends Enum<E>> void makeMultipleChoiceDecision(String text, Class<E> enumType) {
+		E[] options = enumType.getEnumConstants();
+		int result = JOptionPane.showOptionDialog(this, text, "Make a decision",
+				JOptionPane.OK_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, null);
+
+		EnumDecision<E> ed = new EnumDecision<E>(options[result]);
+		streams.sendMessage(new RemoteMessage(Action.sendDecision, localPlayer, null, ed));
 	}
 
 }

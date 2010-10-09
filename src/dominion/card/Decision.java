@@ -97,4 +97,14 @@ public interface Decision extends Serializable {
 		}
 	}
 	
+	public enum yesNo {yes, no};
+	@SuppressWarnings("serial")
+	public class EnumDecision<E extends Enum<E>> implements Decision {
+		public E enumValue;
+		public EnumDecision(E val) { enumValue = val; }
+		@Override
+		public String toString() {
+			return "(EnumDecision with value = " + enumValue +")";
+		}
+	}
 }

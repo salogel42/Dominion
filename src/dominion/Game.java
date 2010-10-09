@@ -202,6 +202,11 @@ public class Game implements StreamListener, Runnable {
 			discard.add(c);
 		}
 
+		public void discardDeck() {
+			discard.addAll(deck);
+			deck.clear();
+		}
+
 		public void cleanup() {
 			discard.addAll(nextTurn.inPlay);
 			discard.addAll(nextTurn.inHand);
@@ -243,7 +248,7 @@ public class Game implements StreamListener, Runnable {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				if(m!=null && (m.action != Action.buyCards || m.playerNum != playerNum)) 
+				if(m!=null && (m.action != Action.playCard || m.playerNum != playerNum)) 
 					System.out.println("was expecting a playCard from player "+ playerNum + ", got message: " + m);
 			}
 			return m.card;

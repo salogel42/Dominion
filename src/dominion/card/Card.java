@@ -7,13 +7,15 @@ import java.util.Stack;
 
 import dominion.ClientTurn;
 import dominion.DominionGUI;
-import dominion.DominionGUI.SelectionType;
 import dominion.ServerTurn;
 import dominion.Turn;
+import dominion.DominionGUI.SelectionType;
 import dominion.card.Decision.CardListDecision;
+import dominion.card.Decision.EnumDecision;
 import dominion.card.Decision.ListAndOptionsDecision;
 import dominion.card.Decision.NumberDecision;
 import dominion.card.Decision.TrashThenGainDecision;
+import dominion.card.Decision.yesNo;
 import dominion.card.Decision.TrashThenGainDecision.WhichDecision;
 
 public interface Card extends Serializable, Comparable<Card> {
@@ -22,12 +24,12 @@ public interface Card extends Serializable, Comparable<Card> {
 	public static final Card curse = new Curse();
 
 	public static final Card[] mustUse = { 
-
+		
 	};
 
 	public static final Card[] baseRandomizerDeck = {
 		new Chapel(), new Cellar(), new Moat(), 
-		new Village(), new Woodcutter(), new Workshop(),
+		new Chancellor(), new Village(), new Woodcutter(), new Workshop(),
 		new Bureaucrat(), new Feast(), new Gardens(), new Militia(), 
 		new Moneylender(), new Remodel(), new Smithy(),
 		new CouncilRoom(), new Festival(), new Laboratory(), new Market(),
@@ -197,6 +199,35 @@ public interface Card extends Serializable, Comparable<Card> {
 	}	
 	
 	//threes
+	public class Chancellor extends DefaultCard implements DecisionCard {
+		private static final long serialVersionUID = 1L;
+		@Override public int getCost() { return 3; }
+
+		// TODO: give error if not the right kind of decision?
+		@SuppressWarnings("unchecked")
+		@Override
+		public void playCard(Turn turn) {
+			turn.addBuyingPower(2);
+			if(turn instanceof ServerTurn) {
+				Decision d = ((ServerTurn) turn).getDecision(this, null);
+				if(((EnumDecision<yesNo>)d).enumValue == yesNo.yes)
+					((ServerTurn) turn).discardDeck();
+			}
+		}
+
+		@Override
+		public void carryOutDecision(DominionGUI gui, int playerNum,
+				Decision decision, ClientTurn turn) {
+			// Note: nothing to do here unless we add visuals for size of deck/discard
+		}
+
+		@Override
+		public void createAndSendDecisionObject(DominionGUI gui,
+				Decision decision) {
+			gui.makeMultipleChoiceDecision("Do you want to put your deck into your discard pile?", yesNo.class);
+		}
+	}
+
 	public class Village extends DefaultCard implements ActionCard {
 		private static final long serialVersionUID = 1L;
 		@Override public int getCost() { return 3; }

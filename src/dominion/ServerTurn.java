@@ -225,6 +225,10 @@ public class ServerTurn extends Turn {
 		player.discardCard(c);
 	}
 
+	public void discardDeck() {
+		player.discardDeck();
+	}
+
 	public boolean putOnDeckFromHand(Card c) { 
 		if(inHand.remove(c)) {
 			player.putCardOnTopOfDeck(c, true); 
