@@ -18,4 +18,6 @@ public interface DominionGUI {
 	public void discardCard(int playerNum, Card c);
 	public void undrawCard(int playerNum, Card c);
 
+	public String getPlayerName(int playerNum);
+	public int getLocalPlayer();
 }

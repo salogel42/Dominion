@@ -56,6 +56,20 @@ public interface Decision extends Serializable {
 		}
 	}
 
+	public static class DecisionAndPlayerDecision implements Decision {
+		private static final long serialVersionUID = 1L;
+		public final Decision decision;
+		public final int playerNum;
+		public DecisionAndPlayerDecision(Decision decision, int playerNum) {
+			this.decision = decision;
+			this.playerNum = playerNum;
+		}	
+		@Override
+		public String toString() {
+			return "(CardAndPlayerDecision with decision " + decision + " and playerNum " + playerNum +")";
+		}
+	}
+
 	public static class HandSelectionDecision implements Decision {
 		private static final long serialVersionUID = 1L;
 		public final int min, max;

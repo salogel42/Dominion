@@ -11,6 +11,7 @@ import dominion.ServerTurn;
 import dominion.Turn;
 import dominion.DominionGUI.SelectionType;
 import dominion.card.Decision.CardListDecision;
+import dominion.card.Decision.DecisionAndPlayerDecision;
 import dominion.card.Decision.EnumDecision;
 import dominion.card.Decision.ListAndOptionsDecision;
 import dominion.card.Decision.NumberDecision;
@@ -33,7 +34,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		new Chapel(), new Cellar(), new Moat(), 
 		new Chancellor(), new Village(), new Woodcutter(), new Workshop(),
 		new Bureaucrat(), new Feast(), new Gardens(), new Militia(), 
-		new Moneylender(), new Remodel(), new Smithy(),
+		new Moneylender(), new Remodel(), new Smithy(), new Spy(),
 		new CouncilRoom(), new Festival(), new Laboratory(), new Library(),
 		new Market(), new Mine(), new Witch(),
 		new Adventurer()
@@ -287,7 +288,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		@Override public int getCost() { return 4; }
 
 		@Override
-		public void reactToCard(ServerTurn turn) {
+		public Decision reactToCard(ServerTurn turn) {
 			// The turn here is the turn of the reacting player, not the one who played the card
 			int numVictory = 0;
 			Card firstVictory = null;
@@ -306,12 +307,15 @@ public interface Card extends Serializable, Comparable<Card> {
 						!(decision.list.get(0) instanceof VictoryCard) || !turn.inHand.contains(decision.list.get(0)));
 				turn.putOnDeckFromHand(decision.list.get(0));
 			}
+			// don't need to communicate anything back to the caller directly
+			return null;
 		}
 
 		@Override public void playCard(Turn turn) { 
 			if(turn instanceof ServerTurn) {
 				// Card.treasureCards[1] is the single instance of Card.Silver
 				((ServerTurn) turn).putCardOnTopOfDeck(Card.treasureCards[1]);
+				((ServerTurn) turn).doInteraction(this);
 			}
 			//reaction code takes care of the rest
 		}
@@ -369,10 +373,10 @@ public interface Card extends Serializable, Comparable<Card> {
 		@Override public int getCost() { return 4; }
 
 		@Override
-		public void reactToCard(ServerTurn turn) {
+		public Decision reactToCard(ServerTurn turn) {
 			// The turn here is the turn of the reacting player, not the one who played the card
 			// if you're already at or below 3 cards, no effect
-			if(turn.inHand.size() <= 3) return;
+			if(turn.inHand.size() <= 3) return null;
 			
 			CardListDecision decision;
 			int numToDiscard = turn.inHand.size() - 3;
@@ -380,11 +384,12 @@ public interface Card extends Serializable, Comparable<Card> {
 			while(((decision = (CardListDecision)turn.getDecision(this, new NumberDecision(numToDiscard)))).list.size() 
 					!= numToDiscard 
 					|| !turn.discardCardsFromHand(decision, this));
+			return null;
 		}
 
 		@Override public void playCard(Turn turn) { 
 			turn.addBuyingPower(2);
-			//reaction code takes care of the rest
+			if(turn instanceof ServerTurn) ((ServerTurn) turn).doInteraction(this);
 		}
 
 		//this will be called on the gui of any opponent with multiple victory cards
@@ -476,6 +481,61 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 	}
 
+	public class Spy extends DefaultCard implements AttackCard, DecisionCard {
+		private static final long serialVersionUID = 1L;
+		@Override public int getCost() { return 4; }
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public void playCard(Turn turn) {
+			turn.drawCards(1);
+			turn.addActions(1);
+			if(turn instanceof ServerTurn) {
+				ServerTurn st = (ServerTurn) turn;
+				List<Decision> decisions = ((ServerTurn) turn).doInteraction(this);
+				//Add in my own card!
+				decisions.add(new SingleCardDecision(st.revealTopCard()));
+				for(int i = 0; i < st.numPlayers(); i++) {
+					int playerNum = (st.playerNum() + i + 1)%st.numPlayers();
+					if(decisions.get(i) == null) continue; //this means they blocked the attack
+					
+					Decision d = st.getDecision(this, new DecisionAndPlayerDecision(decisions.get(i), playerNum));
+					if(((EnumDecision<keepDiscard>)d).enumValue == keepDiscard.keep) 
+						st.getTurn(playerNum).putCardOnTopOfDeck(((SingleCardDecision)decisions.get(i)).card);
+					else st.getTurn(playerNum).discardCardPublically(((SingleCardDecision)decisions.get(i)).card);
+				}
+			}
+		}
+
+		@Override
+		public Decision reactToCard(ServerTurn turn) {
+			// this is called on the opponents, but the opponent doesn't need to make any decisions
+			return new SingleCardDecision(turn.revealTopCard());
+		}
+
+		@Override
+		public void carryOutDecision(DominionGUI gui, int playerNum,
+				Decision decision, ClientTurn turn) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void createAndSendDecisionObject(DominionGUI gui,
+				Decision decision) {
+			DecisionAndPlayerDecision dapd = (DecisionAndPlayerDecision) decision;
+			String name = gui.getPlayerName(dapd.playerNum);
+			String pronoun = "his/her";
+			if(gui.getLocalPlayer() == dapd.playerNum) {
+				name = "You";
+				pronoun = "your";
+			}
+			gui.makeMultipleChoiceDecision("" + name + " revealed the following card.  " +
+					"Do you want to put it back on " + pronoun + " deck (keep) or discard it (discard)?", 
+					keepDiscard.class, ((SingleCardDecision)dapd.decision).card);
+		}
+	}
+
 	//fives
 	public class CouncilRoom extends DefaultCard implements InteractingCard {
 		private static final long serialVersionUID = 1L;
@@ -484,10 +544,12 @@ public interface Card extends Serializable, Comparable<Card> {
 		public void playCard(Turn turn) {
 			turn.drawCards(4);
 			turn.addBuys(1);
+			if(turn instanceof ServerTurn) ((ServerTurn) turn).doInteraction(this);
 		}
 		@Override
-		public void reactToCard(ServerTurn turn) {
+		public Decision reactToCard(ServerTurn turn) {
 			turn.drawCards(1);
+			return null;
 		}
 		
 	}
@@ -626,11 +688,15 @@ public interface Card extends Serializable, Comparable<Card> {
 		private static final long serialVersionUID = 1L;
 
 		@Override
-		public void reactToCard(ServerTurn turn) {
+		public Decision reactToCard(ServerTurn turn) {
 			turn.gainCurse();
+			return null;
 		}
 
-		@Override public void playCard(Turn turn) { turn.drawCards(2); }
+		@Override public void playCard(Turn turn) { 
+			turn.drawCards(2); 
+			if(turn instanceof ServerTurn) ((ServerTurn) turn).doInteraction(this);
+		}
 		@Override public int getCost() { return 5; }
 	}
 
@@ -771,12 +837,15 @@ public interface Card extends Serializable, Comparable<Card> {
 		@Override public int getCost() { return 4; }
 
 		@Override
-		public void reactToCard(ServerTurn turn) {
+		public Decision reactToCard(ServerTurn turn) {
 			turn.discardCard(turn.revealTopCard());
 			turn.putCardOnTopOfDeck(Card.curse);
+			return null;
 		}
 
-		@Override public void playCard(Turn turn) { /* it's all in the reaction */ }
+		@Override public void playCard(Turn turn) { 
+			if(turn instanceof ServerTurn) ((ServerTurn) turn).doInteraction(this);
+		}
 	}
 
 	public static class Duke extends DefaultCard implements ConditionalVictoryCard {
@@ -799,11 +868,11 @@ public interface Card extends Serializable, Comparable<Card> {
 
 		@Override
 		public void playCard(Turn turn) {
-			//all triggered by reaction
+			if(turn instanceof ServerTurn) ((ServerTurn) turn).doInteraction(this);
 		}
 
 		@Override
-		public void reactToCard(ServerTurn turn) {
+		public Decision reactToCard(ServerTurn turn) {
 			//if you are player to the left, send your top two cards
 			if((turn.currentPlayer() + 1)%turn.numPlayers() == turn.playerNum()) {
 				ArrayList<Card> list = new ArrayList<Card>();
@@ -815,6 +884,7 @@ public interface Card extends Serializable, Comparable<Card> {
 				turn.currentTurn().sendDecisionToPlayer(this, cld);
 			}
 			//everyone else just ignores it
+			return null;
 		}
 
 		@Override

@@ -10,8 +10,9 @@ import dominion.RemoteMessage.Action;
 import dominion.card.ActionCard;
 import dominion.card.Card;
 import dominion.card.Decision;
-import dominion.card.Decision.CardListDecision;
+import dominion.card.InteractingCard;
 import dominion.card.TreasureCard;
+import dominion.card.Decision.CardListDecision;
 
 public class ServerTurn extends Turn {
 	private PlayerInfo player;
@@ -64,7 +65,6 @@ public class ServerTurn extends Turn {
 				ActionCard ac = (ActionCard)inHand.get(i);
 				player.sendPlay(ac);
 				playHelper(ac);
-				player.doInteraction(ac);
 				return true;
 			}
 		}
@@ -245,8 +245,10 @@ public class ServerTurn extends Turn {
 
 	public void putCardOnTopOfDeck(Card c) { player.putCardOnTopOfDeck(c, false); }
 	public void discardCard(Card c) { player.discardCard(c); }
+	public void discardCardPublically(Card c) { player.discardCardPublically(c); }
 
 	public ServerTurn currentTurn() { return player.currentTurn(); }
+	public ServerTurn getTurn(int playerNum) { return player.getTurn(playerNum); }
 	public int currentPlayer() { return player.currentPlayer(); }
 	public int numPlayers() { return player.numPlayers(); }
 	public int playerNum() { return player.playerNum; }
@@ -259,4 +261,7 @@ public class ServerTurn extends Turn {
 		player.streams.sendMessage(new RemoteMessage(Action.sendDecision, player.playerNum, c, d));
 	}
 
+	public List<Decision> doInteraction(InteractingCard c) {
+		return player.doInteraction(c);
+	}
 }

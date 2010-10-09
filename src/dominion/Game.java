@@ -128,22 +128,22 @@ public class Game implements StreamListener, Runnable {
 			return null;
 		}
 
-		void doInteraction(ActionCard c) {
-//			System.out.println("Server: About to check for interactivity on card " + c);
-			if(c instanceof InteractingCard) {
-//				System.out.println("Server: Detected interacting card");
-				InteractingCard ic = (InteractingCard) c;
-				for(int i = (playerNum + 1) % numPlayers(); i != playerNum; i = (i + 1)%numPlayers()) {
-					boolean react = true;
-					if(ic instanceof AttackCard) {
-						for(Card rc : players[i].nextTurn.inHand)
-							if(rc instanceof ReactionCard)
-								react = ((ReactionCard)rc).reaction(players[i].nextTurn);
-					}
-					if(react) ic.reactToCard(players[i].nextTurn);
-					System.out.println("Server: Player " + i + " should have reacted? " + react);
+		List<Decision> doInteraction(InteractingCard ic) {
+			// TODO: for most interacting cards, this will be full of nulls,
+			// so kinda a waste of space, perhaps detect that before creating a list?
+			List<Decision> result = new ArrayList<Decision>();
+			for(int i = (playerNum + 1) % numPlayers(); i != playerNum; i = (i + 1)%numPlayers()) {
+				boolean react = true;
+				if(ic instanceof AttackCard) {
+					for(Card rc : players[i].nextTurn.inHand)
+						if(rc instanceof ReactionCard)
+							react = ((ReactionCard)rc).reaction(players[i].nextTurn);
 				}
+				if(react) result.add(ic.reactToCard(players[i].nextTurn));
+				else result.add(null);
+//				System.out.println("Server: Player " + i + " should have reacted? " + react);
 			}
+			return result;
 		}
 
 		public int numPlayers() { return Game.this.players.length; }
@@ -192,6 +192,11 @@ public class Game implements StreamListener, Runnable {
 				pi.streams.sendMessage(new RemoteMessage(Action.putInHand, playerNum, c, null));
 		}
 
+		public void sendDiscardCard(Card c) {
+			for(PlayerInfo pi : Game.this.players)
+				pi.streams.sendMessage(new RemoteMessage(Action.discardCard, playerNum, c, null));
+		}
+
 		//assumes caller has already removed it from appropriate place
 		public void trashCard(Card c) {
 			trash.add(c);
@@ -200,6 +205,12 @@ public class Game implements StreamListener, Runnable {
 		//assumes caller has already removed it from appropriate place
 		public void discardCard(Card c) {
 			discard.add(c);
+		}
+
+		public void discardCardPublically(Card c) {
+			discardCard(c);
+			sendDiscardCard(c);
+			
 		}
 
 		public void discardDeck() {
@@ -231,6 +242,7 @@ public class Game implements StreamListener, Runnable {
 		}
 		
 		public ServerTurn currentTurn() { return Game.this.players[currentPlayer()].nextTurn; }
+		public ServerTurn getTurn(int player) { return Game.this.players[player].nextTurn; }
 		public int currentPlayer() { return Game.this.currPlayer; }
 		public void putCardOnTopOfDeck(Card c, boolean fromHand) { 
 			deck.push(c); 

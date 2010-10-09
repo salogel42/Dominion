@@ -854,6 +854,11 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 			messagePane.setText(messageText);
 			//TODO visual display
 			break;
+		case discardCard:
+			messageText += names[m.playerNum] + " discarded card: " + getImageLinkForCard(m.card) +  ".\n";
+			messagePane.setText(messageText);
+			//TODO visual display
+			break;
 		case putOnDeckFromHand:
 			messageText += names[m.playerNum] + " put card on deck from hand: " + getImageLinkForCard(m.card) +  ".\n";
 			messagePane.setText(messageText);
@@ -964,5 +969,16 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		EnumDecision<E> ed = new EnumDecision<E>(options[result]);
 		streams.sendMessage(new RemoteMessage(Action.sendDecision, localPlayer, null, ed));
 	}
+
+	@Override
+	public String getPlayerName(int playerNum) {
+		return names[playerNum];
+	}
+
+	@Override
+	public int getLocalPlayer() {
+		return localPlayer;
+	}
+
 
 }
