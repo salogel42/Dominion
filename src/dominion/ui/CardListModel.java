@@ -6,11 +6,9 @@ import javax.swing.AbstractListModel;
 
 public class CardListModel extends AbstractListModel {
 	private static final long serialVersionUID = 1L;
-	@SuppressWarnings("rawtypes")
-	private List list;
+	private List<?> list;
 	
-	@SuppressWarnings("rawtypes")
-	public CardListModel(List list) {
+	public CardListModel(List<?> list) {
 		this.list = list;
 	}
 
@@ -25,8 +23,7 @@ public class CardListModel extends AbstractListModel {
 	}
 	
 	public void update() { fireContentsChanged(this, 0, list.size()); }
-	@SuppressWarnings("rawtypes")
-	public void update(List list) {
+	public void update(List<?> list) {
 		this.list = list;
 		fireContentsChanged(this, 0, list.size());
 	}
