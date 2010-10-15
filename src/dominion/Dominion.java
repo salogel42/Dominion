@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -213,6 +214,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		  			"\"> ");
 		  	supply[i].setActionCommand("Gain " + i);
 	  		supply[i].setEnabled(cs.numLeft > 0);
+	  		supply[i].setMargin(new Insets(0, 0, 0, 0));
 		}
 		supplyFrame.pack();
 		resetFrameLocations();
@@ -314,6 +316,7 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 			this.setEnabled(c instanceof ActionCard);
 			this.setVerticalTextPosition(SwingConstants.BOTTOM);
 			this.setHorizontalTextPosition(SwingConstants.CENTER);
+			this.setMargin(new Insets(0, 0, 0, 0));
 		}
 	}
 	private RemoteMessage.Action getActionForState() {
