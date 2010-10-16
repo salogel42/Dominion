@@ -61,7 +61,7 @@ public class ServerTurn extends Turn {
 		} 
 		for(int i = 0; i < inHand.size(); i++) {
 			if(inHand.get(i) instanceof ActionCard && 
-					inHand.get(i).toString().contains(c.toString())) {
+					inHand.get(i).toString().equals(c.toString())) {
 				ActionCard ac = (ActionCard)inHand.get(i);
 				player.sendPlay(ac);
 				playHelper(ac);

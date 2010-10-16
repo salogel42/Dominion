@@ -27,7 +27,7 @@ public interface Card extends Serializable, Comparable<Card> {
 	public static final Card curse = new Curse();
 
 	public static final Card[] mustUse = { 
-		
+
 	};
 
 	public static final Card[] baseRandomizerDeck = {
@@ -41,7 +41,7 @@ public interface Card extends Serializable, Comparable<Card> {
 	};
 	public static final Card[] intrigueRandomizerDeck = {
 		new Courtyard(), new GreatHall(), new ShantyTown(), 
-		new Baron(), new Conspirator(), new Ironworks(), new SeaHag(), 
+		new Baron(), new Conspirator(), new Ironworks(), new MiningVillage(), new SeaHag(), 
 		new Duke(), new Tribute(), 
 		new Harem()
 	};
@@ -866,6 +866,7 @@ public interface Card extends Serializable, Comparable<Card> {
 			}
 		}
 
+
 		@Override
 		public void createAndSendDecisionObject(DominionGUI gui, Decision decision) {
 			gui.setupGainCard(4, false, null);
@@ -875,6 +876,45 @@ public interface Card extends Serializable, Comparable<Card> {
 		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision, ClientTurn turn) {
 			/* server handles sending gain message, so don't worry about that bit here */
 			switchHelper(turn, decision, 1, 1);
+		}
+	}
+
+	public class MiningVillage extends DefaultCard implements DecisionCard {
+		private static final long serialVersionUID = 1L;
+		@Override public int getCost() { return 4; }
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public void playCard(Turn turn) {
+			turn.drawCards(1);
+			turn.addActions(2);
+			Decision d = null;
+			if(turn instanceof ServerTurn) {
+				ServerTurn st = (ServerTurn) turn;
+				while(d == null || !(d instanceof EnumDecision<?>))
+					d = (EnumDecision<yesNo>) ((ServerTurn) turn).getDecision(this, null);
+				st.sendDecisionToPlayer(this, d);
+				if(((EnumDecision<yesNo>)d).enumValue == yesNo.yes) {
+					st.trashCardFromPlay(this);
+					st.addBuyingPower(2);
+				}
+			}
+		}
+		
+		@SuppressWarnings("unchecked")
+		@Override
+		public void carryOutDecision(DominionGUI gui, int playerNum,
+				Decision decision, ClientTurn turn) {
+			if(((EnumDecision<yesNo>)decision).enumValue == yesNo.yes) {
+				turn.trashCardFromPlay(this);
+				turn.addBuyingPower(2);
+			}
+		}
+		
+		@Override
+		public void createAndSendDecisionObject(DominionGUI gui,
+				Decision decision) {
+			gui.makeMultipleChoiceDecision("Do you want to trash this card for 2 coin?", yesNo.class, null);
 		}
 	}
 
