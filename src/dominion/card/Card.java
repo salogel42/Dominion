@@ -41,7 +41,7 @@ public interface Card extends Serializable, Comparable<Card> {
 	};
 	public static final Card[] intrigueRandomizerDeck = {
 		new Courtyard(), new GreatHall(), new ShantyTown(), 
-		new Conspirator(), new Ironworks(), new SeaHag(), 
+		new Baron(), new Conspirator(), new Ironworks(), new SeaHag(), 
 		new Duke(), new Tribute(), 
 		new Harem()
 	};
@@ -787,6 +787,52 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 	}
 	
+	public class Baron extends DefaultCard implements DecisionCard {
+		private static final long serialVersionUID = 1L;
+		@Override public int getCost() { return 4; }
+
+		@SuppressWarnings("unchecked")
+		@Override
+		// TODO: perhaps make a setting that allows you to always discard the estate if you
+		// have one?  Going strictly by the rules I have to ask, but as a player it's super
+		// annoying and I'd never play it to gain an estate when I have one I could discard.
+		public void playCard(Turn turn) {
+			turn.addBuys(1);
+			if(turn instanceof ServerTurn) {
+				ServerTurn st = (ServerTurn)turn;
+				if(st.containsCard(Card.victoryCards[0])) {
+					Decision d = null;
+					while(d == null || !(d instanceof EnumDecision<?>))
+						d = (EnumDecision<yesNo>) ((ServerTurn) turn).getDecision(this, null);
+					st.sendDecisionToPlayer(this, d); //auto
+					if(((EnumDecision<yesNo>)d).enumValue == yesNo.yes) {
+						st.discardCardFromHand(Card.victoryCards[0]);
+						st.addBuyingPower(4);
+						return;
+					}
+				}
+				st.gainCard(Card.victoryCards[0]);
+			}
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public void carryOutDecision(DominionGUI gui, int playerNum,
+				Decision decision, ClientTurn turn) {
+			if(((EnumDecision<yesNo>)decision).enumValue == yesNo.yes) {
+				turn.discardCardFromHand(Card.victoryCards[0]);
+				turn.addBuyingPower(4);
+			}
+			// Note: if the answer was no, the server deals with gaining the estate
+		}
+
+		@Override
+		public void createAndSendDecisionObject(DominionGUI gui,
+				Decision decision) {
+			gui.makeMultipleChoiceDecision("Do you want to discard an Estate?", yesNo.class, null);
+		}
+	}
+
 	public class Conspirator extends DefaultCard implements ActionCard {
 		private static final long serialVersionUID = 1L;
 		@Override public int getCost() { return 4; }
