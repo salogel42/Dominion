@@ -17,7 +17,9 @@ import dominion.card.Decision.ListAndOptionsDecision;
 import dominion.card.Decision.NumberDecision;
 import dominion.card.Decision.SingleCardDecision;
 import dominion.card.Decision.TrashThenGainDecision;
+import dominion.card.Decision.firstSecond;
 import dominion.card.Decision.keepDiscard;
+import dominion.card.Decision.stewardDecision;
 import dominion.card.Decision.yesNo;
 import dominion.card.Decision.TrashThenGainDecision.WhichDecision;
 
@@ -40,7 +42,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		new Adventurer()
 	};
 	public static final Card[] intrigueRandomizerDeck = {
-		new Courtyard(), new GreatHall(), new ShantyTown(), 
+		new Courtyard(), new GreatHall(), new ShantyTown(), new Steward(),
 		new Baron(), new Conspirator(), new Ironworks(), new MiningVillage(), new SeaHag(), 
 		new Duke(), new Tribute(), 
 		new Harem()
@@ -786,7 +788,59 @@ public interface Card extends Serializable, Comparable<Card> {
 			}
 		}
 	}
-	
+
+	public class Steward extends DefaultCard implements DecisionCard {
+		private static final long serialVersionUID = 1L;
+		@Override public int getCost() { return 3; }
+
+		// TODO: give error if not the right kind of decision?
+		@SuppressWarnings("unchecked")
+		@Override
+		public void playCard(Turn turn) {
+			if(turn instanceof ServerTurn) {
+				Decision d = ((ServerTurn) turn).getDecision(this, new EnumDecision<firstSecond>(firstSecond.first));
+				if(((EnumDecision<stewardDecision>)d).enumValue == stewardDecision.draw)
+					turn.drawCards(2);
+				else if(((EnumDecision<stewardDecision>)d).enumValue == stewardDecision.money)
+					turn.addBuyingPower(2);
+				else if(((EnumDecision<stewardDecision>)d).enumValue == stewardDecision.trash) {
+					CardListDecision decision;
+					do {
+						//request decision
+						decision = (CardListDecision) ((ServerTurn)turn).getDecision(this, new EnumDecision<firstSecond>(firstSecond.second));
+						//try using this decision, if it doesn't work, ask again
+					} while(decision.list.size() != 2 || !((ServerTurn)turn).trashCardsFromHand(decision, this));
+					// trashCardsFromHands sends a confirmation to the client
+				}
+				((ServerTurn)turn).sendDecisionToPlayer(this, d);
+			}
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public void carryOutDecision(DominionGUI gui, int playerNum,
+				Decision decision, ClientTurn turn) {
+			if(decision instanceof CardListDecision)
+				gui.trashCardSelection(playerNum, (CardListDecision)decision);
+			else if(decision instanceof EnumDecision<?> && ((EnumDecision<?>)decision).enumValue instanceof stewardDecision){
+				if(((EnumDecision<stewardDecision>)decision).enumValue == stewardDecision.draw)
+					turn.drawCards(2);
+				else if(((EnumDecision<stewardDecision>)decision).enumValue == stewardDecision.money)
+					turn.addBuyingPower(2);
+			}
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public void createAndSendDecisionObject(DominionGUI gui,
+				Decision decision) {
+			if(((EnumDecision<firstSecond>)decision).enumValue == firstSecond.first)
+				gui.makeMultipleChoiceDecision("Do you want to trash 2 cards, draw two cards, or gain 2 coin?", stewardDecision.class, null);
+			else
+				gui.setupCardSelection(2, true, SelectionType.trash, null);
+		}
+	}
+
 	public class Baron extends DefaultCard implements DecisionCard {
 		private static final long serialVersionUID = 1L;
 		@Override public int getCost() { return 4; }

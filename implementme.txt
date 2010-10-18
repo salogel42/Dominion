@@ -1,7 +1,5 @@
 Should be fairly easy:
 
-3 Chancellor – +2 . You may immediately put your deck into your discard pile.
-4 Baron – +1 Buy. You may discard an estate card. If you do, +4 . Otherwise, gain an estate card.
 4 Cutpurse – +2 . Each other player discards a Copper card (or reveals a hand with no Copper).
 5 Explorer – You may reveal a Province card from your hand. If you do, gain a Gold card, putting it into your hand. Otherwise, gain a Silver card, putting it into your hand.
 5 Ghost Ship – +2 Cards. Each other player with 4 or more cards in hand puts cards from his hand on top of his deck until he has 3 cards in his hand.
@@ -19,11 +17,9 @@ Should be fairly easy:
 5 Trading Post – Trash 2 cards from your hand. If you do, gain a Silver card; put it into your hand.
 4 Treasure Map – Trash this and another copy of Treasure Map from your hand. If you do trash two Treasure Maps, gain 4 Gold cards, putting them on top of your deck.
 5 Treasury – +1 Card, +1 Action, +1 . When you discard this from play, if you didn’t buy a Victory card this turn, you may put this on top of your deck.
-3 Steward – Choose one: +2 cards; or +2 ; or trash 2 cards from your hand.
 3 Swindler – +2 . Each other player trashes the top card of his deck and gains a card of the same cost that you choose.
 3 Masquerade – +2 Cards. Each player passes a card from his hand to the left at once. Then you may trash a card from your hand.
 3 Lookout – +1 Action. Look at the top 3 cards of your deck. Trash one of them. Discard one of them. Put the other one on top of your deck.
-4 Mining Village – +1 Card, +2 Actions. You may trash this card immediately, If you do, +2 .
 2 Secret Chamber – Discard any number of cards. +1 coin for per card discarded.  Reaction: When another player plays an Attack card, you may reveal this from your hand. If you do, +2 Cards, then put 2 cards from your hand on top of your deck.
 
 duration:
@@ -108,3 +104,7 @@ Already Implemented:
 4 Militia – +2 . Each other player discards down to 3 cards in his hand.
 4 Gardens – Worth 1 for every 10 cards in your deck (rounded down).
 5 Duke – Worth 1 for each Duchy you have.
+3 Chancellor – +2 . You may immediately put your deck into your discard pile.
+4 Baron – +1 Buy. You may discard an estate card. If you do, +4 . Otherwise, gain an estate card.
+4 Mining Village – +1 Card, +2 Actions. You may trash this card immediately, If you do, +2 .
+3 Steward – Choose one: +2 cards; or +2 ; or trash 2 cards from your hand.
