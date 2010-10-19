@@ -8,7 +8,6 @@ Should be fairly easy:
 2 Pearl Diver – +1 Card, +1 Action. Look at the bottom card of your deck. You may put it on top.
 5 Saboteur – Each other player reveals cards from the top of his deck until revealing one costing 3 or more. He trashes that card and may gain a card costing at most 2 less than it. He discards the other revealed cards.
 4 Salvager – +1 Buy. Trash a card from your hand. + equal to its cost.
-5 Upgrade – +1 Card, +1 Action. Trash a card form your hand. Gain a card costing exactly 1 more than it.
 3 Warehouse +3 Cards, +1 Action. Discard 3 cards.
 3 Wishing Well – +1 Card. +1 Action. Name a card. Reveal the top card of your deck. If it’s the named card, put it into your hand.
 5 Minion – 1 Action. Choose one: +2 ; or discard your hand, + 4 cards, and each other player with at least 5 cards in hand discards his hand and draws 4 cards.
@@ -108,3 +107,4 @@ Already Implemented:
 4 Baron – +1 Buy. You may discard an estate card. If you do, +4 . Otherwise, gain an estate card.
 4 Mining Village – +1 Card, +2 Actions. You may trash this card immediately, If you do, +2 .
 3 Steward – Choose one: +2 cards; or +2 ; or trash 2 cards from your hand.
+5 Upgrade – +1 Card, +1 Action. Trash a card form your hand. Gain a card costing exactly 1 more than it.

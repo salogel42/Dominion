@@ -44,7 +44,7 @@ public interface Card extends Serializable, Comparable<Card> {
 	public static final Card[] intrigueRandomizerDeck = {
 		new Courtyard(), new GreatHall(), new ShantyTown(), new Steward(),
 		new Baron(), new Conspirator(), new Ironworks(), new MiningVillage(), new SeaHag(), 
-		new Duke(), new Tribute(), 
+		new Duke(), new Tribute(), new Upgrade(),
 		new Harem()
 	};
 	public static final Card[] seasideRandomizerDeck= {
@@ -1037,6 +1037,66 @@ public interface Card extends Serializable, Comparable<Card> {
 			switchHelper(turn, decision, 2, 2);
 		}
 
+	}
+
+	public class Upgrade extends TreasureSelectionCard implements DecisionCard {
+		private static final long serialVersionUID = 1L;
+		@Override public int getCost() { return 5; }
+
+		@Override
+		public void playCard(Turn turn) {
+			turn.drawCards(1);
+			turn.addActions(1);
+			if(turn instanceof ServerTurn) {
+				ServerTurn st = (ServerTurn)turn;
+				TrashThenGainDecision ttgd = new TrashThenGainDecision();
+				CardListDecision decision;
+				do {
+					decision = (CardListDecision) st.getDecision(this, ttgd);
+					// prompt til you get 1 card that is in the player's hand
+				} while(decision.list.size() != 1 || !turn.inHand.contains(decision.list.get(0)));
+				Card toTrash = decision.list.get(0);
+				st.trashCardFromHand(toTrash);
+				st.sendDecisionToPlayer(this, new ListAndOptionsDecision(ttgd, decision));
+
+				// if there are no cards costing exactly one more, we're done, nothing left to do
+				// TODO: maybe send a message telling the user there were no cards with that price
+				// to gain so they don't get anything?
+				if(!st.supplyContainsExactCost(toTrash.getCost() + 1)) return;
+				
+				// otherwise, gain one!
+				ttgd = new TrashThenGainDecision(toTrash);
+				do {
+					
+					decision = (CardListDecision) st.getDecision(this, ttgd);
+					// prompt til you get 1 card that's still available and not too expensive
+				} while(decision.list.size() != 1 || !st.gainCard(decision.list.get(0))
+						|| decision.list.get(0).getCost() != toTrash.getCost() + 1);
+				st.gainCard(decision.list.get(0));
+				st.sendDecisionToPlayer(this, new ListAndOptionsDecision(ttgd, decision));
+			}
+		}
+
+		@Override
+		public void createAndSendDecisionObject(DominionGUI gui, Decision decision) {
+			TrashThenGainDecision dec = (TrashThenGainDecision) decision;
+			if(dec.whichDecision == WhichDecision.chooseTrash) {
+				gui.setupCardSelection(1, true, SelectionType.trash, null);
+			} else {
+				gui.setupGainCard(dec.toTrash.getCost() + 1, true, this);
+			}
+		}
+
+		@Override
+		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision, ClientTurn turn) {
+			ListAndOptionsDecision lod = (ListAndOptionsDecision) decision;
+			TrashThenGainDecision dec = lod.ttgd;
+			if(dec.whichDecision == WhichDecision.chooseTrash) {
+				gui.trashCardFromHand(playerNum, lod.cld.list.get(0));
+			} else {
+				// currently don't do any visual for gains
+			}
+		}
 	}
 
 	public class Harem extends DefaultCard implements VictoryCard, TreasureCard {

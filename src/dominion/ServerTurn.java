@@ -193,6 +193,10 @@ public class ServerTurn extends Turn {
 		inHand.add(c);
 		player.sendPutInHand(c);
 	}
+	
+	public boolean supplyContainsExactCost(int cost) {
+		return player.supplyContainsExactCost(cost);
+	}
 
 	public boolean gainCardToHand(Card c) {
 		if(player.getCardFromSupply(c) == null) return false;

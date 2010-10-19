@@ -106,6 +106,14 @@ public class Game implements StreamListener, Runnable {
 			discard.add(bc);
 		}
 		
+		public boolean supplyContainsExactCost(int cost)
+		{
+			for(CardStack cs : stacks)
+				if(!cs.isEmpty() && cs.type.getCost() == cost)
+					return true;
+			return false;
+		}
+
 		public Card getCardFromSupply(Card c)
 		{
 			CardStack cs = getCardStack(c);
