@@ -929,6 +929,7 @@ public interface Card extends Serializable, Comparable<Card> {
 				} while(decision.list.size() != 1 || decision.list.get(0).getCost() > 4 
 						|| !st.gainCard(decision.list.get(0)));
 				switchHelper(turn, decision, 1, 1);
+				st.sendDecisionToPlayer(this, decision);
 			}
 		}
 
