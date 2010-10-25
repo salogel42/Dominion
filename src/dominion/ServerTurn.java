@@ -27,12 +27,17 @@ public class ServerTurn extends Turn {
 	
 	
 	//Note: it will only actually be computed once, no matter how many times it is called
+	// TODO: this will have to change when we introduce Prosperity and the 
+	// treasures that do things
 	public void computeBuyingPower()
 	{
 		if(bpComputed) return;
 		for(Card card : inHand) {
-			if(card instanceof TreasureCard) 
+			if(card instanceof TreasureCard) {
 				buyingPower += ((TreasureCard)card).getValue();
+				if((TreasureCard)card instanceof Card.Copper)
+					buyingPower += coppersmithCount;
+			}
 		}
 		bpComputed = true;
 	}
@@ -168,6 +173,10 @@ public class ServerTurn extends Turn {
 		return true;
 	}
 	
+	int coppersmithCount = 0;
+	public void addCoppersmith() {
+		coppersmithCount++;
+	}
 
 	@Override
 	public void revealHand() {

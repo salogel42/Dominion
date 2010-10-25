@@ -43,7 +43,8 @@ public interface Card extends Serializable, Comparable<Card> {
 	};
 	public static final Card[] intrigueRandomizerDeck = {
 		new Courtyard(), new GreatHall(), new ShantyTown(), new Steward(),
-		new Baron(), new Conspirator(), new Ironworks(), new MiningVillage(), new SeaHag(), 
+		new Baron(), new Conspirator(), new Coppersmith(), new Ironworks(),
+		new MiningVillage(), new SeaHag(),
 		new Duke(), new Tribute(), new Upgrade(),
 		new Harem()
 	};
@@ -898,6 +899,17 @@ public interface Card extends Serializable, Comparable<Card> {
 				turn.drawCards(1);
 				turn.addActions(1);
 			}
+		}
+	}
+	
+	public class Coppersmith extends DefaultCard implements ActionCard {
+		private static final long serialVersionUID = 1L;
+		@Override public int getCost() { return 4; }
+
+		@Override
+		public void playCard(Turn turn) {
+			if(turn instanceof ServerTurn)
+				((ServerTurn) turn).addCoppersmith();
 		}
 	}
 
