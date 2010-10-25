@@ -468,6 +468,12 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		//TODO how is ClientTurn going to be able to trash cards?
 	}
 
+	public void clearHand(int playerNum) {
+		playerModels[playerNum].turn.inHand.clear();
+		handPane.removeAll();
+		handFrame.pack();
+	}
+
 	private void removeCardFromHand(int playerNum, Card c) {
 		int i = playerModels[playerNum].turn.inHand.indexOf(c);
 		handPane.remove(i);
@@ -860,6 +866,14 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 		case discardCard:
 			messageText += names[m.playerNum] + " discarded card: " + getImageLinkForCard(m.card) +  ".\n";
 			messagePane.setText(messageText);
+			//TODO visual display
+			break;
+		case discardCardList:
+			messageText += names[m.playerNum] + " discarded cards: " + ((CardListDecision) m.decisionObject).list + ".\n";
+			messagePane.setText(messageText);
+			if(m.playerNum == localPlayer)
+				for(Card c : ((CardListDecision) m.decisionObject).list)
+					discardCard(m.playerNum, c);
 			//TODO visual display
 			break;
 		case putOnDeckFromHand:

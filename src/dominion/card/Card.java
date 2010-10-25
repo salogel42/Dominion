@@ -19,6 +19,7 @@ import dominion.card.Decision.SingleCardDecision;
 import dominion.card.Decision.TrashThenGainDecision;
 import dominion.card.Decision.firstSecond;
 import dominion.card.Decision.keepDiscard;
+import dominion.card.Decision.minionDecision;
 import dominion.card.Decision.stewardDecision;
 import dominion.card.Decision.yesNo;
 import dominion.card.Decision.TrashThenGainDecision.WhichDecision;
@@ -45,7 +46,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		new Courtyard(), new GreatHall(), new ShantyTown(), new Steward(),
 		new Baron(), new Conspirator(), new Coppersmith(), new Ironworks(),
 		new MiningVillage(), new SeaHag(),
-		new Duke(), new Tribute(), new Upgrade(),
+		new Duke(), new Minion(), new Tribute(), new Upgrade(),
 		new Harem()
 	};
 	public static final Card[] seasideRandomizerDeck= {
@@ -1012,6 +1013,52 @@ public interface Card extends Serializable, Comparable<Card> {
 				if(c instanceof Duchy) count++;
 			}
 			return count;
+		}
+	}
+
+	public class Minion extends DefaultCard implements DecisionCard, AttackCard {
+		private static final long serialVersionUID = 1L;
+		@Override public int getCost() { return 5; }
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public void playCard(Turn turn) {
+			turn.addActions(1);
+			if(turn instanceof ServerTurn) {
+				ServerTurn st = (ServerTurn) turn;
+				Decision d = st.getDecision(this, null);
+				if(((EnumDecision<minionDecision>)d).enumValue == minionDecision.money)
+					turn.addBuyingPower(2);
+				else if(((EnumDecision<minionDecision>)d).enumValue == minionDecision.redraw) {
+					st.discardHand();
+					st.drawCards(4);
+					st.doInteraction(this);
+				}
+				// note: not strictly necessary, since the buyingPower calculated
+				// on the client side is never used...
+				st.sendDecisionToPlayer(this, d);
+			}
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision, ClientTurn turn) {
+			if(((EnumDecision<minionDecision>)decision).enumValue == minionDecision.money)
+				turn.addBuyingPower(2);
+		}
+
+		@Override
+		public void createAndSendDecisionObject(DominionGUI gui, Decision decision) {
+			gui.makeMultipleChoiceDecision("Do you want 2 coin, or do you want to discard your hand and draw 4 new cards, attacking the other players?", minionDecision.class, null);
+		}
+
+		@Override
+		public Decision reactToCard(ServerTurn turn) {
+			if(turn.inHand.size() >= 5) {
+				turn.discardHand();
+				turn.drawCards(4);
+			}
+			return null;
 		}
 	}
 

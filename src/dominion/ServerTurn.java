@@ -63,7 +63,7 @@ public class ServerTurn extends Turn {
 		if(c == null) {
 			numActionsLeft = 0;
 			return true;
-		} 
+		}
 		for(int i = 0; i < inHand.size(); i++) {
 			if(inHand.get(i) instanceof ActionCard && 
 					inHand.get(i).toString().equals(c.toString())) {
@@ -129,6 +129,14 @@ public class ServerTurn extends Turn {
 		System.out.println("Got through discarding");
 		sendConfirmDecision(cld, inProgress);
 		return true;
+	}
+
+	public void discardHand() {
+		// fun fact, if you make a shallow copy here instead, if you ever send
+		// a shallow copy of the same object, it'll use the old data... who knows why.
+		player.sendDiscardCardList(new CardListDecision(new ArrayList<Card>(inHand)));
+		player.discardCards(inHand);
+		inHand.clear();
 	}
 
 	public boolean buyCards(List<Card> list) {

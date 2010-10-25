@@ -205,6 +205,11 @@ public class Game implements StreamListener, Runnable {
 				pi.streams.sendMessage(new RemoteMessage(Action.discardCard, playerNum, c, null));
 		}
 
+		public void sendDiscardCardList(CardListDecision cld) {
+			for(PlayerInfo pi : Game.this.players)
+				pi.streams.sendMessage(new RemoteMessage(Action.discardCardList, playerNum, null, cld));
+		}
+
 		//assumes caller has already removed it from appropriate place
 		public void trashCard(Card c) {
 			trash.add(c);
@@ -215,10 +220,13 @@ public class Game implements StreamListener, Runnable {
 			discard.add(c);
 		}
 
+		public void discardCards(List<Card> l) {
+			discard.addAll(l);
+		}
+
 		public void discardCardPublically(Card c) {
 			discardCard(c);
 			sendDiscardCard(c);
-			
 		}
 
 		public void discardDeck() {

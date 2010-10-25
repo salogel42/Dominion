@@ -127,6 +127,7 @@ public interface Decision extends Serializable {
 	public enum yesNo {yes, no};
 	public enum keepDiscard {keep, discard};
 	public enum stewardDecision {trash, draw, money};
+	public enum minionDecision {money, redraw};
 	@SuppressWarnings("serial")
 	public class EnumDecision<E extends Enum<E>> implements Decision {
 		public E enumValue;
