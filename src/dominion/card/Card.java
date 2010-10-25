@@ -444,10 +444,9 @@ public interface Card extends Serializable, Comparable<Card> {
 				do {
 					decision = (CardListDecision) st.getDecision(this, ttgd);
 					// prompt til you get 1 card that's still available and not too expensive
-				} while(decision.list.size() != 1 || !st.gainCard(decision.list.get(0))
-						|| decision.list.get(0).getCost() > toTrash.getCost() + 2);
-				st.gainCard(decision.list.get(0));
-				st.sendDecisionToPlayer(this, new ListAndOptionsDecision(ttgd, decision));
+				} while(decision.list.size() != 1 || decision.list.get(0).getCost() > toTrash.getCost() + 2
+						|| !st.gainCard(decision.list.get(0)));
+				// the gain happens in the while condition
 			}
 		}
 
@@ -468,7 +467,8 @@ public interface Card extends Serializable, Comparable<Card> {
 			if(dec.whichDecision == WhichDecision.chooseTrash) {
 				gui.trashCardFromHand(playerNum, lod.cld.list.get(0));
 			} else {
-				// currently don't do any visual for gains
+				// should never actually get here, no confirmation sent for 
+				// this part since it's just a normal gain
 			}
 		}
 	}
@@ -1069,11 +1069,10 @@ public interface Card extends Serializable, Comparable<Card> {
 				do {
 					
 					decision = (CardListDecision) st.getDecision(this, ttgd);
-					// prompt til you get 1 card that's still available and not too expensive
-				} while(decision.list.size() != 1 || !st.gainCard(decision.list.get(0))
-						|| decision.list.get(0).getCost() != toTrash.getCost() + 1);
-				st.gainCard(decision.list.get(0));
-				st.sendDecisionToPlayer(this, new ListAndOptionsDecision(ttgd, decision));
+					// prompt til you get 1 card that's not too expensive and still available
+				} while(decision.list.size() != 1 || decision.list.get(0).getCost() != toTrash.getCost() + 1 
+						|| !st.gainCard(decision.list.get(0)));
+				// the gain happens in the while condition
 			}
 		}
 
@@ -1094,7 +1093,7 @@ public interface Card extends Serializable, Comparable<Card> {
 			if(dec.whichDecision == WhichDecision.chooseTrash) {
 				gui.trashCardFromHand(playerNum, lod.cld.list.get(0));
 			} else {
-				// currently don't do any visual for gains
+				// we don't actually get a message for this
 			}
 		}
 	}

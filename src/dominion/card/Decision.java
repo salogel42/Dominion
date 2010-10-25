@@ -108,7 +108,7 @@ public interface Decision extends Serializable {
 		public ListAndOptionsDecision(TrashThenGainDecision t, CardListDecision c) { ttgd=t; cld=c; }
 		@Override
 		public String toString() {
-			return "(TrashThenGainDecision with CardListDecision="+cld+" TrashThenGainDecision="+ttgd+")";
+			return "(ListAndOptionsDecision with CardListDecision="+cld+" TrashThenGainDecision="+ttgd+")";
 		}
 	}
 
