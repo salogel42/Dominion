@@ -10,13 +10,11 @@ Should be fairly easy:
 4 Salvager – +1 Buy. Trash a card from your hand. + equal to its cost.
 3 Warehouse +3 Cards, +1 Action. Discard 3 cards.
 3 Wishing Well – +1 Card. +1 Action. Name a card. Reveal the top card of your deck. If it’s the named card, put it into your hand.
-5 Minion – 1 Action. Choose one: +2 ; or discard your hand, + 4 cards, and each other player with at least 5 cards in hand discards his hand and draws 4 cards.
 4 Thief – Each other player reveals the top 2 cards of his deck. If they revealed any Treasure cards, they trash one of them that you choose. You may gain any or all of these trashed cards. They discard the other revealed cards.
 5 Torturer – +3 Cards. Each other player chooses one: he discards 2 cards; or he gains a Curse card, putting it in his hand.
 5 Trading Post – Trash 2 cards from your hand. If you do, gain a Silver card; put it into your hand.
 4 Treasure Map – Trash this and another copy of Treasure Map from your hand. If you do trash two Treasure Maps, gain 4 Gold cards, putting them on top of your deck.
 5 Treasury – +1 Card, +1 Action, +1 . When you discard this from play, if you didn’t buy a Victory card this turn, you may put this on top of your deck.
-3 Swindler – +2 . Each other player trashes the top card of his deck and gains a card of the same cost that you choose.
 3 Masquerade – +2 Cards. Each player passes a card from his hand to the left at once. Then you may trash a card from your hand.
 3 Lookout – +1 Action. Look at the top 3 cards of your deck. Trash one of them. Discard one of them. Put the other one on top of your deck.
 2 Secret Chamber – Discard any number of cards. +1 coin for per card discarded.  Reaction: When another player plays an Attack card, you may reveal this from your hand. If you do, +2 Cards, then put 2 cards from your hand on top of your deck.
@@ -108,3 +106,5 @@ Already Implemented:
 4 Mining Village – +1 Card, +2 Actions. You may trash this card immediately, If you do, +2 .
 3 Steward – Choose one: +2 cards; or +2 ; or trash 2 cards from your hand.
 5 Upgrade – +1 Card, +1 Action. Trash a card form your hand. Gain a card costing exactly 1 more than it.
+5 Minion – 1 Action. Choose one: +2 ; or discard your hand, + 4 cards, and each other player with at least 5 cards in hand discards his hand and draws 4 cards.
+3 Swindler – +2 . Each other player trashes the top card of his deck and gains a card of the same cost that you choose.

@@ -232,6 +232,12 @@ public class ServerTurn extends Turn {
 		gainCard(Card.curse);
 	}
 
+	// Note: this is for cards that are neither in hand nor in play 
+	// (i.e. revealed cards)
+	public void trashCard(Card c) {
+		player.trashCard(c);
+	}
+
 	//Note: caller must verify presence of card
 	@Override
 	public void trashCardFromHand(Card c) {

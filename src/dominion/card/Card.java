@@ -44,6 +44,7 @@ public interface Card extends Serializable, Comparable<Card> {
 	};
 	public static final Card[] intrigueRandomizerDeck = {
 		new Courtyard(), new GreatHall(), new ShantyTown(), new Steward(),
+		new Swindler(),
 		new Baron(), new Conspirator(), new Coppersmith(), new Ironworks(),
 		new MiningVillage(), new SeaHag(),
 		new Duke(), new Minion(), new Tribute(), new Upgrade(),
@@ -89,6 +90,29 @@ public interface Card extends Serializable, Comparable<Card> {
 				if(c instanceof TreasureCard) turn.addBuyingPower(numGain);
 				//curses get nothing, as do nulls (i.e. if no cards were left in deck)
 			}
+		}
+	}
+
+	@SuppressWarnings("serial")
+	public abstract static class NameAndPronounCard extends DefaultCard {
+		// used by attack cards with decisions for all other players
+		public String getPlayerName(DominionGUI gui, Decision decision) {
+			DecisionAndPlayerDecision dapd = (DecisionAndPlayerDecision) decision;
+			String name = gui.getPlayerName(dapd.playerNum);
+			if(gui.getLocalPlayer() == dapd.playerNum) {
+				name = "You";
+			}
+			return name;
+		}
+		// TODO: someday we may actually have a way of looking up what pronoun
+		// to use if it's another player
+		public String getPronoun(DominionGUI gui, Decision decision) {
+			DecisionAndPlayerDecision dapd = (DecisionAndPlayerDecision) decision;
+			String pronoun = "his/her";
+			if(gui.getLocalPlayer() == dapd.playerNum) {
+				pronoun = "your";
+			}
+			return pronoun;
 		}
 	}
 
@@ -277,7 +301,7 @@ public interface Card extends Serializable, Comparable<Card> {
 
 		@Override
 		public void createAndSendDecisionObject(DominionGUI gui, Decision decision) {
-			gui.setupGainCard(4, false, null);
+			gui.setupGainCard(4, false, null, null);
 		}
 
 		@Override
@@ -356,7 +380,7 @@ public interface Card extends Serializable, Comparable<Card> {
 
 		@Override
 		public void createAndSendDecisionObject(DominionGUI gui, Decision decision) {
-			gui.setupGainCard(5, false, null);
+			gui.setupGainCard(5, false, null, null);
 		}
 
 		@Override
@@ -458,7 +482,7 @@ public interface Card extends Serializable, Comparable<Card> {
 			if(dec.whichDecision == WhichDecision.chooseTrash) {
 				gui.setupCardSelection(1, true, SelectionType.trash, null);
 			} else {
-				gui.setupGainCard(dec.toTrash.getCost() + 2, false, this);
+				gui.setupGainCard(dec.toTrash.getCost() + 2, false, this, null);
 			}
 		}
 
@@ -485,7 +509,7 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 	}
 
-	public class Spy extends DefaultCard implements AttackCard, DecisionCard {
+	public class Spy extends NameAndPronounCard implements AttackCard, DecisionCard {
 		private static final long serialVersionUID = 1L;
 		@Override public int getCost() { return 4; }
 
@@ -525,17 +549,10 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 
 		@Override
-		public void createAndSendDecisionObject(DominionGUI gui,
-				Decision decision) {
+		public void createAndSendDecisionObject(DominionGUI gui, Decision decision) {
 			DecisionAndPlayerDecision dapd = (DecisionAndPlayerDecision) decision;
-			String name = gui.getPlayerName(dapd.playerNum);
-			String pronoun = "his/her";
-			if(gui.getLocalPlayer() == dapd.playerNum) {
-				name = "You";
-				pronoun = "your";
-			}
-			gui.makeMultipleChoiceDecision("" + name + " revealed the following card.  " +
-					"Do you want to put it back on " + pronoun + " deck (keep) or discard it (discard)?", 
+			gui.makeMultipleChoiceDecision("" + this.getPlayerName(gui, decision) + " revealed the following card.  " +
+					"Do you want to put it back on " + this.getPronoun(gui, decision) + " deck (keep) or discard it (discard)?", 
 					keepDiscard.class, ((SingleCardDecision)dapd.decision).card);
 		}
 	}
@@ -672,7 +689,7 @@ public interface Card extends Serializable, Comparable<Card> {
 			if(dec.whichDecision == WhichDecision.chooseTrash) {
 				gui.setupCardSelection(1, false, SelectionType.trash, this);
 			} else {
-				gui.setupGainCard(dec.toTrash.getCost() + 3, false, this);
+				gui.setupGainCard(dec.toTrash.getCost() + 3, false, this, null);
 			}
 		}
 
@@ -843,6 +860,57 @@ public interface Card extends Serializable, Comparable<Card> {
 		}
 	}
 
+	public class Swindler extends NameAndPronounCard implements AttackCard, DecisionCard {
+		private static final long serialVersionUID = 1L;
+		@Override public int getCost() { return 3; }
+
+		@Override
+		public Decision reactToCard(ServerTurn turn) {
+			// The turn here is the turn of the reacting player, not the one who played the card
+			Card topCard = turn.revealTopCard();
+			turn.trashCard(topCard);
+			return new SingleCardDecision(topCard);
+		}
+
+		@Override public void playCard(Turn turn) { 
+			turn.addBuyingPower(2);
+			if(turn instanceof ServerTurn) {
+				ServerTurn st = (ServerTurn) turn;
+				List<Decision> decisions = st.doInteraction(this);
+				
+				for(int i = 0; i < st.numPlayers() - 1; i++) {
+					int playerNum = (st.playerNum() + i + 1)%st.numPlayers();
+					if(decisions.get(i) == null) continue; //this means they blocked the attack
+					Card topCard = ((SingleCardDecision)decisions.get(i)).card;
+					
+					// if no cards of that cost exist, just move along
+					if(!st.supplyContainsExactCost(topCard.getCost())) continue;
+					
+					// prompt player for another card from supply of the same cost for the attacked player to gain
+					CardListDecision decision;
+					do {
+						decision = (CardListDecision) st.getDecision(this, new DecisionAndPlayerDecision(decisions.get(i), playerNum));
+					} while(decision.list.size() != 1 || decision.list.get(0).getCost() != topCard.getCost() 
+							|| !st.getTurn(playerNum).gainCard(decision.list.get(0)));
+				}
+			}
+			//reaction code takes care of the rest
+		}
+
+		//this will be called on the gui of all opponents (unless they have a moat/lighthouse)
+		@Override public void createAndSendDecisionObject(DominionGUI gui, Decision decision) {
+			DecisionAndPlayerDecision dapd = (DecisionAndPlayerDecision) decision;
+			String message = "" + this.getPlayerName(gui, decision) + " trashed the following card: " 
+				+ ((SingleCardDecision)dapd.decision).card + ".  Choose a card of the same cost to replace it."; 
+			gui.setupGainCard(((SingleCardDecision)dapd.decision).card.getCost(), true, null, message);
+		}
+
+		@Override
+		public void carryOutDecision(DominionGUI gui, int playerNum, Decision decision, ClientTurn turn) { 
+			// server will send message to gain
+		}
+	}
+
 	public class Baron extends DefaultCard implements DecisionCard {
 		private static final long serialVersionUID = 1L;
 		@Override public int getCost() { return 4; }
@@ -937,7 +1005,7 @@ public interface Card extends Serializable, Comparable<Card> {
 
 		@Override
 		public void createAndSendDecisionObject(DominionGUI gui, Decision decision) {
-			gui.setupGainCard(4, false, null);
+			gui.setupGainCard(4, false, null, null);
 		}
 
 		@Override
@@ -1001,6 +1069,7 @@ public interface Card extends Serializable, Comparable<Card> {
 			if(turn instanceof ServerTurn) ((ServerTurn) turn).doInteraction(this);
 		}
 	}
+
 
 	public static class Duke extends DefaultCard implements ConditionalVictoryCard {
 		private static final long serialVersionUID = 1L;
@@ -1142,7 +1211,7 @@ public interface Card extends Serializable, Comparable<Card> {
 			if(dec.whichDecision == WhichDecision.chooseTrash) {
 				gui.setupCardSelection(1, true, SelectionType.trash, null);
 			} else {
-				gui.setupGainCard(dec.toTrash.getCost() + 1, true, this);
+				gui.setupGainCard(dec.toTrash.getCost() + 1, true, this, null);
 			}
 		}
 

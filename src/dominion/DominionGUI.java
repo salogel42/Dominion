@@ -7,7 +7,7 @@ import dominion.card.Decision.CardListDecision;
 public interface DominionGUI {
 	public enum SelectionType {trash, discard, undraw}
 	public void setupCardSelection(int upperLimit, boolean exact, SelectionType type, SelectionCard c);
-	public void setupGainCard(int upperLimit, boolean exact, SelectionCard c);
+	public void setupGainCard(int upperLimit, boolean exact, SelectionCard c, String s);
 
 	public <E extends Enum<E>> void makeMultipleChoiceDecision(String message, Class<E> enumType, Card c);
 

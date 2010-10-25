@@ -815,10 +815,14 @@ public class Dominion extends JFrame implements StreamListener, ActionListener, 
 	}
 	
 	@Override
-	public void setupGainCard(int upperLimit, boolean exact, SelectionCard c) {
-		String amount = (upperLimit == -1) ? "any number of cards":
-			(((exact) ? "exactly " : "at most ") + upperLimit);
-		message.setText("Choose a card costing " + amount + " to gain.");
+	public void setupGainCard(int upperLimit, boolean exact, SelectionCard c, String s) {
+		if(s == null) {
+			String amount = (upperLimit == -1) ? "any number of cards":
+				(((exact) ? "exactly " : "at most ") + upperLimit);
+			message.setText("Choose a card costing " + amount + " to gain.");
+		} else {
+			message.setText(s);
+		}
 		//TODO add take into hand as a bool?
 
 //		TODO enforce exact w/ GUI
